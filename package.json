@@ -1,0 +1,12 @@
+{
+  "name": "vigia",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Asistente de voz local en Android",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs"
+  }
+}

@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.*
+vigia.local.json
+
+# Android / React Native
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.keystore
+!debug.keystore
+.idea/
+*.iml
+
+# Modelos y audio pesados
+models/
+eval/**/*.wav
+
+.DS_Store
+Thumbs.db
