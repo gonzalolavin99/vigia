@@ -57,7 +57,7 @@ const exes = {
     process.env.ANDROID_HOME && join(process.env.ANDROID_HOME, 'platform-tools', 'adb.exe'),
     'G:\\Dev\\Android\\Sdk\\platform-tools\\adb.exe',
   ]),
-  claude: findExe('claude', [join(homedir(), '.local', 'bin', 'claude.exe'), 'G:\\Dev\\npm-global\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe']),
+  codex: findExe('codex', [process.env.CODEX_CLI_PATH, 'G:\\Dev\\codex\\codex.exe']),
   ollama: findExe('ollama', ['G:\\Dev\\ollama\\app\\ollama.exe', join(LOCAL, 'Programs', 'Ollama', 'ollama.exe')]),
   // venv del proyecto en G: (C: no tiene espacio); si no existe, el Python del sistema.
   python: [process.env.VIGIA_VENV, 'G:\\Dev\\venvs\\vigia']
@@ -72,7 +72,7 @@ function checkTools() {
     node: ['-v'],
     java: ['-version'],
     adb: ['version'],
-    claude: ['--version'],
+    codex: ['--version'],
     ollama: ['--version'],
   };
   const hints = {
@@ -80,7 +80,7 @@ function checkTools() {
     node: 'winget install OpenJS.NodeJS.LTS',
     java: 'winget install Microsoft.OpenJDK.17',
     adb: 'Instala Android Studio y el SDK (winget install Google.AndroidStudio)',
-    claude: 'Instala Claude Code CLI y corre "claude" para iniciar sesión con tu cuenta Pro',
+    codex: 'Instala Codex CLI e inicia sesión con tu cuenta Pro',
     ollama: 'winget install Ollama.Ollama',
   };
   for (const [tool, args] of Object.entries(versionArgs)) {
@@ -129,26 +129,14 @@ function checkPhone() {
   record('Versión y arquitectura', ok ? 'PASS' : 'FAIL', `Android ${version}, ${abi}`, ok ? '' : 'Se esperaba Android 11 y arm64-v8a; revisa docs/vision.md');
 }
 
-function checkClaude() {
-  if (process.env.ANTHROPIC_API_KEY) {
-    record('Claude con la suscripción', 'FAIL', 'ANTHROPIC_API_KEY está definida', 'Bórrala del entorno: con ella Claude Code cobra por API (ADR-011)');
+function checkCodex() {
+  if (!exes.codex) {
+    record('Sesión Codex', 'SKIP', 'Codex CLI no encontrado', 'Inicia sesión con Codex CLI usando tu cuenta Pro');
     return;
   }
-  if (!exes.claude) {
-    record('Claude con la suscripción', 'SKIP', 'Sin CLI de Claude', 'Instala Claude Code CLI');
-    return;
-  }
-  const r = run(exes.claude, ['-p', 'responde ok', '--output-format', 'json'], { timeout: 90000 });
-  let detail = r.out.slice(0, 120);
-  let ok = false;
-  try {
-    const json = JSON.parse(r.out);
-    ok = r.ok && !json.is_error;
-    detail = `respuesta: ${String(json.result ?? '').slice(0, 40)}; ${json.duration_ms ?? '?'} ms`;
-  } catch {
-    // La salida no es JSON: se informa tal cual.
-  }
-  record('Claude con la suscripción', ok ? 'PASS' : 'FAIL', detail, ok ? 'Confirma a mano que no aparece uso nuevo en la consola de API' : 'Corre "claude" e inicia sesión con tu cuenta Pro');
+  const r = run(exes.codex, ['login', 'status'], { timeout: 15000 });
+  const detail = firstLine(r.out).slice(0, 120) || String(r.error ?? 'Sin respuesta');
+  record('Sesión Codex', r.ok ? 'PASS' : 'FAIL', detail, r.ok ? '' : 'Inicia sesión con Codex CLI usando tu cuenta Pro');
 }
 
 async function checkOllama() {
@@ -226,7 +214,7 @@ function checkBridge() {
 const config = loadConfig();
 checkTools();
 checkPhone();
-checkClaude();
+checkCodex();
 await checkOllama();
 await checkWiz();
 await checkTv(config);

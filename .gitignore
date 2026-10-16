@@ -19,3 +19,12 @@ eval/**/*.wav
 
 .DS_Store
 Thumbs.db
+
+# React Native
+.bundle/
+*.orig.*
+
+
+android/app/.cxx/
+debug.keystore
+
