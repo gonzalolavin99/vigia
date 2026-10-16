@@ -10,11 +10,11 @@ Prepara el PC y el teléfono antes de la fase 0. El repo vive en `G:\Alexo`.
 | Node.js LTS | App React Native y puente LLM | `node -v` |
 | JDK 17 | Compilar Android | `java -version` |
 | Android Studio, SDK y platform-tools | Compilar e instalar; ADB | `adb version` |
-| Claude Code CLI con sesión de tu cuenta Pro | Desarrollar y puente LLM | `claude --version`; `/status` muestra la suscripción |
+| Codex CLI con sesión de tu cuenta Pro | Desarrollar y futuro puente LLM (según instrucción vigente; ver nota) | `codex --version`; `codex login status` |
 | Python 3.11+ y paquete `sherpa-onnx` | Convertir las frases de Alfred a tokens y probar modelos en el PC | `sherpa-onnx-cli text2token --help` |
 | Ollama | LLM de respaldo | `ollama --version` |
 
-No crees la variable `ANTHROPIC_API_KEY` en ningún lado: con ella Claude Code cobra por API en vez de usar el plan.
+No crear ni usar `ANTHROPIC_API_KEY`. La configuración local vigente indica Codex CLI con plan Pro. ADR-011 y el documento fuente aún describen Claude; hay que resolver esa divergencia con un ADR antes de implementar el puente LLM. El doctor solo consulta el estado local de inicio de sesión de Codex; no ejecuta un prompt.
 
 ## 2. Preparar el teléfono (una vez)
 
@@ -50,7 +50,7 @@ No se rootea ni se cambia la versión de Android.
 | --- | --- | --- |
 | Teléfono conectado | `adb devices` | Un dispositivo autorizado |
 | Versión y arquitectura | `getprop` | Android 11, arm64-v8a |
-| Claude con la suscripción | No existe `ANTHROPIC_API_KEY`; `claude -p "responde ok" --output-format json` | Responde sin error y sin uso nuevo en la consola de API |
+| Sesión Codex | `codex login status` | CLI confirma sesión iniciada |
 | Ollama | `GET http://localhost:11434/api/tags` | Responde con al menos un modelo |
 | Luces WiZ | Broadcast UDP `getPilot` al puerto 38899 | Lista ampolletas con IP y MAC |
 | TV Samsung | `GET http://IP-TV:8001/api/v2/` | JSON con `"OS": "Tizen"` |
@@ -61,6 +61,8 @@ No se rootea ni se cambia la versión de Android.
 Medido el 13 de octubre: Windows 11 Home, Intel i5-9300H (4 núcleos, 8 hilos), 16 GB de RAM, GeForce GTX 1050 de 3 GB. El respaldo parte con un modelo de 3B cuantizado (por ejemplo `qwen2.5:3b`), que cabe en la GPU; uno de 7 a 8B no cabe y correría en CPU, demasiado lento. La decisión final sale de `eval/tools.jsonl` y se registra en el ADR-016.
 
 ## 5. Prompt por fase
+
+El estado real, los comandos de continuación y los pendientes de la fase 0 están en [estado-actual.md](estado-actual.md). Último doctor (16 oct 2026): 11/14 sin fallos; teléfono no detectado, Ollama apagado y WiZ sin respuesta; TV omitida sin IP.
 
 ```text
 Implementa la fase N de docs/roadmap.md, solo esa fase.

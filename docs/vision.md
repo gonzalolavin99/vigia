@@ -1,6 +1,6 @@
 # Vigía: asistente de voz local en Android
 
-> Exportado del Claude Doc "Vigía: asistente de voz local en Android" (https://claude.ai/artifact/Fr2Yc83TamqvZpmtDGNhMD) el 2026-10-13. El doc es la fuente de verdad; si cambia, se vuelve a exportar.
+> Exportado el 2026-10-13 de un Claude Doc histórico. **Vigencia en revisión (16 oct 2026):** la instrucción local más reciente especifica Codex CLI con plan Pro para el futuro puente LLM y prohíbe `ANTHROPIC_API_KEY`. Este documento y ADR-011 todavía describen Claude; esa decisión está pendiente de un ADR actualizado y de sincronización con la fuente de verdad. No implementar el puente basándose en la descripción antigua.
 
 Vigía convierte un Android viejo en un asistente tipo Alexa que escucha, entiende y ejecuta comandos en el propio teléfono, y solo consulta un servidor cuando necesita un LLM.
 

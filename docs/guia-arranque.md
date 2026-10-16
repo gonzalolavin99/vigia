@@ -1,6 +1,6 @@
 # Guía de arranque
 
-Completa antes [puesta-en-marcha.md](puesta-en-marcha.md); luego pásale a tu agente de código el prompt de la fase 0.
+Consulta [estado-actual.md](estado-actual.md) para el último traspaso. La fase 0 ya está autorizada e iniciada; no vuelvas a crear el scaffold. Completa [puesta-en-marcha.md](puesta-en-marcha.md) y continúa con la prueba en teléfono.
 
 ## Antes de programar
 
@@ -10,17 +10,10 @@ Completa antes [puesta-en-marcha.md](puesta-en-marcha.md); luego pásale a tu ag
 4. Empareja el Echo como parlante Bluetooth del teléfono y confirma que suena.
 5. Activa la comunicación local en la app WiZ.
 
-## Prompt para la fase 0
+## Continuación de fase 0
 
 ```text
-Lee docs/arquitectura.md, docs/adr/ y docs/roadmap.md. Implementa solo la fase 0:
-una app React Native mínima con un foreground service en Kotlin que detecte una
-palabra de activación con sherpa-onnx, grabe hasta el silencio con VAD, transcriba
-con Whisper multilingüe pequeño y envíe el texto a JS para mostrarlo en pantalla.
-Antes de escribir código, verifica en la documentación actual de sherpa-onnx los
-modelos disponibles para palabra clave y para español, y propón cuáles usar.
-Al final, agrega una pantalla de diagnóstico con latencia de transcripción y
-conteo de activaciones, para validar el ADR-004.
+Lee `AGENTS.md`, `docs/README.md`, `docs/estado-actual.md`, el roadmap y los ADR pertinentes. Sigue únicamente fase 0. El prototipo RN/sherpa-onnx ya existe y compila; no rehagas el scaffold. Primero confirma el estado ADB y pide a Gonzalo reconectar el Realme si no aparece. Instala y prueba el APK en Android 11 arm64: permiso de micrófono, activaciones, transcripción en español, latencia, falsos positivos con TV, pantalla apagada y arranque después de reinicio. Registra solo mediciones reales en ADR-004 y metricas.md. No cierres fase 0 sin sus criterios de salida. No adelantes fases ni cambies la decisión de LLM: la instrucción vigente dice Codex CLI y prohíbe `ANTHROPIC_API_KEY`, pero ADR-011 aún dice Claude; proponer ADR antes de tocar esa arquitectura.
 ```
 
 ## Frases de prueba
@@ -37,6 +30,6 @@ conteo de activaciones, para validar el ADR-004.
 
 ## Permisos de Android
 
-`RECORD_AUDIO`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `BLUETOOTH_CONNECT`, `INTERNET`.
+El prototipo actual declara `RECORD_AUDIO`, `FOREGROUND_SERVICE` e `INTERNET`; el servicio declara `foregroundServiceType="microphone"`. No declara aún permisos/receptor de arranque automático. Para planificar fases futuras: `FOREGROUND_SERVICE_MICROPHONE` es de Android 14, `POST_NOTIFICATIONS` de 13, y `SCHEDULE_EXACT_ALARM`/`BLUETOOTH_CONNECT` de 12. Para Android 11 el servicio requiere el tipo micrófono en el manifiesto. La reanudación al encender sigue pendiente según ADR-003.
 
 Se declaran todos, pero en Android 11 solo los de la versión 11 o anterior tienen efecto: `FOREGROUND_SERVICE_MICROPHONE` es de Android 14, `POST_NOTIFICATIONS` de 13, y `SCHEDULE_EXACT_ALARM` y `BLUETOOTH_CONNECT` de 12. Lo que sí exige Android 11 es `foregroundServiceType="microphone"` en el manifiesto. Para arrancar al encender hace falta además `SYSTEM_ALERT_WINDOW`, concedido por ADB (ADR-003).

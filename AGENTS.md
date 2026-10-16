@@ -25,6 +25,6 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 - npm run lint
 
 ## Estado
-- Puesta en marcha lista (14 oct): doctor pasa 14 de 14; la TV queda omitida hasta tener su IP en vigia.local.json.
-- La fase 0 empieza cuando Gonzalo lo autorice.
+- Puesta en marcha base realizada; última ejecución del doctor (16 oct): 11/14 sin fallos. ADB no vio el teléfono, Ollama no respondía, WiZ no respondió y la TV quedó omitida por falta de IP. Ver docs/estado-actual.md.
+- Fase 0 autorizada e iniciada el 16 oct. El prototipo compila, pero falta instalarlo y medirlo en el Realme; no iniciar fase 1 todavía.
 - Herramientas en G:\Dev (JDK, Android Studio, SDK, Ollama, Codex CLI, venv de Python); no instalar nada en C:.

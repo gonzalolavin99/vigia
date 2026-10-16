@@ -1,6 +1,6 @@
 # Documentación de Vigía
 
-Exportada del Claude Doc (fuente de verdad): https://claude.ai/artifact/Fr2Yc83TamqvZpmtDGNhMD
+Documentación local de trabajo. El enlace histórico apuntaba a un Claude Doc; `AGENTS.md` indica que la fuente de verdad debe ser el Codex Doc. **Pendiente:** confirmar y añadir aquí el enlace correcto y sincronizar allí estos cambios. No considerar el enlace histórico como confirmación de sincronización.
 
 | Archivo | Contenido |
 | --- | --- |
@@ -12,4 +12,5 @@ Exportada del Claude Doc (fuente de verdad): https://claude.ai/artifact/Fr2Yc83T
 | [guia-arranque.md](guia-arranque.md) | Prompt de la fase 0, frases de prueba, permisos |
 | [evaluacion.md](evaluacion.md) | Método, métricas, sets de datos, pruebas de aceptación |
 | [metricas.md](metricas.md) | Resultados por fase |
+| [estado-actual.md](estado-actual.md) | Estado verificado, pendientes y pasos para traspasar el trabajo a otro chat |
 | `Visión y alcance.pdf` | Export original de la primera pestaña (12 oct) |

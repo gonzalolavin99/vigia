@@ -1,5 +1,7 @@
 # ADR-016: Puente LLM nativo en Windows, sin Docker
 
+> **Vigencia en revisión (16 oct 2026):** este ADR todavía nombra Claude Code. La instrucción vigente especifica Codex CLI y prohíbe `ANTHROPIC_API_KEY`; revisar junto con ADR-011 antes de implementar el puente en fase 5.
+
 **Estado:** Aceptada (13 oct)
 
 ## Contexto

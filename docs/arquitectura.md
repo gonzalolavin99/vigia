@@ -2,6 +2,8 @@
 
 Una app React Native con un módulo nativo Kotlin que mantiene el micrófono abierto; todo lo demás es TypeScript.
 
+**Implementación actual (fase 0, 16 oct 2026):** solo existe la pantalla de diagnóstico y el servicio Kotlin de captura/KWS/VAD/Whisper; el orquestador, Headless JS, reglas, skills, persistencia, TTS, adaptadores y puente LLM de esta arquitectura siguen siendo diseño futuro. Para estado detallado, ver [estado-actual.md](estado-actual.md). La descripción del servidor aún está en conflicto con la instrucción vigente de Codex; resolver antes de implementarlo.
+
 ## Capas
 
 | Capa | Tecnología | Responsabilidad |

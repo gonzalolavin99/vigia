@@ -22,4 +22,4 @@ Vosk (más liviano, menos preciso); reconocedor nativo de Android (fácil, pero 
 
 **Criterio de validación:** transcripción de un comando de 4 segundos en menos de 2 segundos, y menos de 1 activación falsa por hora con TV encendida.
 
-**Resultados fase 0:** _pendiente_
+**Resultados fase 0 (16 oct 2026):** el prototipo compila con KWS sherpa-onnx GigaSpeech (inglés), Silero VAD y Whisper Tiny multilingüe configurado con `language="es"`. APK arm64 debug generado; aún sin instalación ni pruebas en el Realme (ADB no detectó teléfono). Latencia, falsos positivos, consumo, audio con pantalla apagada y detección real en español/inglés siguen **pendientes**. No se considera validado el motor ni cerrada la fase. Ver [estado actual](../estado-actual.md).
