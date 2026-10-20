@@ -93,6 +93,7 @@ class VoiceService : Service() {
 
   private fun startAudioLoop() {
     active = true
+    running = true
     worker = Executors.newSingleThreadExecutor()
     audioThread = thread(name = "VigiaAudio") {
       var spotter: KeywordSpotter? = null
@@ -183,6 +184,7 @@ class VoiceService : Service() {
         stopSelf()
       } finally {
         active = false
+        running = false
         try { recorder?.stop() } catch (_: Exception) { }
         recorder?.release(); recorder = null
         wakeStream?.release(); spotter?.release(); vad?.release(); listenVad?.release()
@@ -394,6 +396,8 @@ class VoiceService : Service() {
   override fun onBind(intent: Intent?): IBinder? = null
 
   companion object {
+    @Volatile var running = false
+      private set
     const val EXTRA_DIAGNOSTIC = "diagnostic"
     const val EXTRA_SAVE_AUDIO = "saveAudio"
     private const val TAG = "VigiaMetrics"

@@ -31,6 +31,13 @@ export default function App(): React.JSX.Element {
   const [last, setLast] = useState<AudioEvent | null>(null);
   const [log, setLog] = useState<LogLine[]>([]);
 
+  // Tras reiniciar el teléfono el servicio arranca solo (ADR-003): reflejarlo al abrir la app.
+  useEffect(() => {
+    VigiaAudio.isRunning().then((isRunning: boolean) => {
+      if (isRunning) { setRunning(true); setStatus('Escuchando (servicio ya activo)'); }
+    });
+  }, []);
+
   useEffect(() => {
     const add = (kind: LogLine['kind'], text: string, at?: number) =>
       setLog(prev => [{id: nextId++, time: clock(at), kind, text}, ...prev].slice(0, MAX_LOG));

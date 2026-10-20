@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import cl.vigia.app.audio.VoiceService
+import cl.vigia.app.boot.VigiaPrefs
 
 class VigiaAudioModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
   init { AudioEvents.context = context }
@@ -17,15 +18,21 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
 
   @ReactMethod fun start(options: ReadableMap?, promise: Promise) {
     try {
-      val intent = Intent(context, VoiceService::class.java)
-        .putExtra(VoiceService.EXTRA_DIAGNOSTIC, options?.hasKey("diagnostic") == true && options.getBoolean("diagnostic"))
-        .putExtra(VoiceService.EXTRA_SAVE_AUDIO, options?.hasKey("saveAudio") == true && options.getBoolean("saveAudio"))
-      ContextCompat.startForegroundService(context, intent)
+      val diagnostic = options?.hasKey("diagnostic") == true && options.getBoolean("diagnostic")
+      val saveAudio = options?.hasKey("saveAudio") == true && options.getBoolean("saveAudio")
+      // Se recuerda para retomar la escucha con los mismos ajustes tras reiniciar el teléfono (ADR-003).
+      VigiaPrefs.save(context, listening = true, diagnostic = diagnostic, saveAudio = saveAudio)
+      ContextCompat.startForegroundService(context, VigiaPrefs.serviceIntent(context))
       promise.resolve(true)
     } catch (error: Exception) { promise.reject("START_FAILED", error) }
   }
 
-  @ReactMethod fun stop() { context.stopService(Intent(context, VoiceService::class.java)) }
+  @ReactMethod fun stop() {
+    VigiaPrefs.save(context, listening = false, diagnostic = false, saveAudio = false)
+    context.stopService(Intent(context, VoiceService::class.java))
+  }
+  // Tras reiniciar el teléfono el servicio arranca solo; la pantalla pregunta su estado al abrirse.
+  @ReactMethod fun isRunning(promise: Promise) { promise.resolve(VoiceService.running) }
   @ReactMethod fun addListener(eventName: String) = Unit
   @ReactMethod fun removeListeners(count: Int) = Unit
 }
