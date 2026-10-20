@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "doctor": "node scripts/doctor.mjs"
+    "doctor": "node scripts/doctor.mjs",
+    "logs": "node scripts/pull-logs.mjs"
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.88.0",

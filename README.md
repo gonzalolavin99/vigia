@@ -1,6 +1,6 @@
 # Vigía
 
-Asistente de voz local para Android 11. Revisa primero [docs/README.md](docs/README.md) y [AGENTS.md](AGENTS.md).
+Asistente de voz local para Android 11. Revisa primero [docs/README.md](docs/README.md) y [CLAUDE.md](CLAUDE.md).
 
 ## Fase 0: spike de audio
 
@@ -13,9 +13,7 @@ Los modelos se ignoran en Git y no contienen datos del usuario. El APK debug los
 
 ## Estado y continuación en otro chat
 
-La fase 0 está iniciada, pero no cerrada: compilación Kotlin correcta; el APK se había generado antes del último ajuste del servicio y debe reconstruirse; aún no hay mediciones en el Realme porque ADB no lo detectó. El último `npm run doctor` dio 11/14: Codex, Java, ADB y sherpa-onnx disponibles; teléfono ausente, Ollama sin responder, WiZ sin respuesta y TV omitida al faltar su IP. Ver [docs/estado-actual.md](docs/estado-actual.md) para commits, verificación detallada y siguientes pasos.
-
-La instrucción vigente especifica Codex CLI para el futuro puente LLM y prohíbe `ANTHROPIC_API_KEY`, mientras ADR-011 y parte de la documentación aún describen Claude. No implementar el puente hasta resolverlo con un ADR y sincronizar el documento fuente enlazado desde [docs/README.md](docs/README.md).
+La fase 0 está iniciada, pero no cerrada: compilación Kotlin correcta; el APK se había generado antes del último ajuste del servicio y debe reconstruirse; aún no hay mediciones en el Realme porque ADB no lo detectó. El último `npm run doctor` (16 oct) dio 14/14: teléfono, Echo, 3 luces WiZ, TV, Ollama y Claude disponibles. Ver [docs/estado-actual.md](docs/estado-actual.md) para commits, verificación detallada y siguientes pasos.
 
 ## Comandos
 

@@ -20,11 +20,12 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 
 ## Comandos
 - npm run doctor   # comprueba PC, teléfono, Claude, Ollama, WiZ y TV
+- npm run logs     # copia los registros de Vigía del teléfono a eval/phase0/device-logs/
 - npm test
 - npm run android
 - npm run lint
 
 ## Estado
-- Puesta en marcha lista (14 oct): doctor pasa 14 de 14; la TV queda omitida hasta tener su IP en vigia.local.json.
-- La fase 0 empieza cuando Gonzalo lo autorice.
+- Puesta en marcha lista: doctor pasa 14 de 14 (16 oct), con teléfono, Echo, 3 WiZ y TV conectados.
+- Fase 0 en curso: el prototipo corre en el Realme con activación híbrida (ADR-018) y NeMo español (ADR-019). Detalle en docs/estado-actual.md. No iniciar fase 1 todavía.
 - Herramientas en G:\Dev (JDK, Android Studio, SDK, Ollama, Claude CLI, venv de Python); no instalar nada en C:.

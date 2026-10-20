@@ -62,7 +62,7 @@ Al cerrar cada fase se agrega una fila a [metricas.md](metricas.md): fecha, vers
 
 ## Experimentos para aprender
 
-- Fase 0: comparar dos tamaños de Whisper en WER y latencia, y elegir con los dos números a la vista.
+- Fase 0: comparar Whisper tiny con NeMo español en las mismas frases (hecho el 17 oct, ver ADR-019); falta el WER con `eval/stt/`.
 - Fase 2: medir exactitud de intenciones antes y después de agregar el normalizador de números.
 - Fase 5: comparar reglas solas, LLM solo y reglas con respaldo LLM en el mismo set, en exactitud y latencia.
 - Fase 5: comparar dos modelos de Ollama y dos versiones del prompt en `eval/tools.jsonl`, con 5 corridas cada uno.

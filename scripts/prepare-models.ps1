@@ -23,28 +23,35 @@ function Get-ModelArchive([string]$Url, [string]$Archive, [string]$Directory) {
 }
 
 $kwsName = 'sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01'
-$whisperName = 'sherpa-onnx-whisper-tiny'
+# Modelo solo español (NVIDIA NeMo, 1424 h) para comandos y activación por texto (ADR-018, ADR-019).
+$nemoName = 'sherpa-onnx-nemo-fast-conformer-ctc-es-1424-int8'
 $kwsSource = Join-Path $modelCache $kwsName
-$whisperSource = Join-Path $modelCache $whisperName
+$nemoSource = Join-Path $modelCache $nemoName
 Get-ModelArchive "https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/$kwsName.tar.bz2" (Join-Path $modelCache "$kwsName.tar.bz2") $kwsSource
-Get-ModelArchive "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/$whisperName.tar.bz2" (Join-Path $modelCache "$whisperName.tar.bz2") $whisperSource
+Get-ModelArchive "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/$nemoName.tar.bz2" (Join-Path $modelCache "$nemoName.tar.bz2") $nemoSource
 $vadModel = Join-Path $modelRoot 'silero_vad.onnx'
 if (!(Test-Path $vadModel)) { Invoke-WebRequest 'https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx' -OutFile $vadModel }
 
 $kwsAssets = Join-Path $assetRoot 'kws'
-$whisperAssets = Join-Path $assetRoot 'whisper'
-New-Item -ItemType Directory -Force $kwsAssets, $whisperAssets | Out-Null
+$nemoAssets = Join-Path $assetRoot 'nemo-es'
+New-Item -ItemType Directory -Force $kwsAssets, $nemoAssets | Out-Null
 foreach ($name in @('encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'decoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'tokens.txt', 'bpe.model')) {
   Copy-Item (Join-Path $kwsSource $name) $kwsAssets -Force
 }
-foreach ($name in @('tiny-encoder.int8.onnx', 'tiny-decoder.int8.onnx', 'tiny-tokens.txt')) {
-  Copy-Item (Join-Path $whisperSource $name) $whisperAssets -Force
+foreach ($name in @('model.int8.onnx', 'tokens.txt')) {
+  Copy-Item (Join-Path $nemoSource $name) $nemoAssets -Force
 }
 Copy-Item $vadModel (Join-Path $assetRoot 'silero_vad.onnx') -Force
 
 $rawKeywords = Join-Path $modelCache 'keywords_raw.txt'
 $compiledKeywords = Join-Path $kwsSource 'keywords-vigia.txt'
-Set-Content -LiteralPath $rawKeywords -Value @('HEY ALFRED', 'ALFRED', 'OYE ALFRED') -Encoding utf8
+# @ETIQUETA hace que el KWS devuelva qué frase se detectó, para medir cada una por separado (A1).
+# :boost #umbral por frase; variantes fonéticas de cómo suena "Alfred" en español (fase 0, 16 oct).
+Set-Content -LiteralPath $rawKeywords -Value @(
+  'HEY ALFRED :2.5 #0.15 @HEY_ALFRED', 'HEY ALFRET :2.5 #0.15 @HEY_ALFRED',
+  'OYE ALFRED :2.5 #0.15 @OYE_ALFRED', 'OI ALFRED :2.5 #0.15 @OYE_ALFRED', 'OY ALFRED :2.5 #0.15 @OYE_ALFRED',
+  'ALFRED :2.5 #0.2 @ALFRED', 'ALFRET :2.5 #0.2 @ALFRED', 'ALFRID :2.5 #0.2 @ALFRED'
+) -Encoding utf8
 & $sherpaCli text2token --tokens (Join-Path $kwsSource 'tokens.txt') --tokens-type bpe --bpe-model (Join-Path $kwsSource 'bpe.model') $rawKeywords $compiledKeywords
 if ($LASTEXITCODE -ne 0) { throw 'No pude convertir las palabras clave con text2token.' }
 Copy-Item $compiledKeywords (Join-Path $kwsAssets 'keywords.txt') -Force

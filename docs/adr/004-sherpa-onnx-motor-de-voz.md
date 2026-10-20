@@ -1,6 +1,6 @@
 # ADR-004: sherpa-onnx como motor de voz
 
-**Estado:** Por validar en fase 0
+**Estado:** Aceptada en parte: sherpa-onnx sigue siendo el motor; la activación pasó a ADR-018 y la transcripción a NeMo español (ADR-019) el 17 oct
 
 ## Contexto
 
@@ -22,4 +22,14 @@ Vosk (más liviano, menos preciso); reconocedor nativo de Android (fácil, pero 
 
 **Criterio de validación:** transcripción de un comando de 4 segundos en menos de 2 segundos, y menos de 1 activación falsa por hora con TV encendida.
 
-**Resultados fase 0 (16 oct 2026):** el prototipo compila con KWS sherpa-onnx GigaSpeech (inglés), Silero VAD y Whisper Tiny multilingüe configurado con `language="es"`. APK arm64 debug generado; aún sin instalación ni pruebas en el Realme (ADB no detectó teléfono). Latencia, falsos positivos, consumo, audio con pantalla apagada y detección real en español/inglés siguen **pendientes**. No se considera validado el motor ni cerrada la fase. Ver [estado actual](../estado-actual.md).
+**Resultados fase 0 (17 oct 2026, Realme 6 Pro, 1 m, TV apagada):**
+
+| Medición | Resultado | Meta |
+| --- | --- | --- |
+| Detector de palabra clave GigaSpeech (inglés), umbral 0,35 | ~3 de 11 intentos | más del 90 % |
+| El mismo, umbral 0,15–0,2 + variantes fonéticas | 7 de ~36 (19 %) | más del 90 % |
+| "Alfred" en la transcripción NeMo de cada tramo | 34 de ~36 (~95 %), 0 falsas | más del 90 % |
+| Decodificación NeMo por tramo de activación | p50 76 ms, p95 117 ms (n=47) | — |
+| Comando de ~4 s, NeMo / Whisper tiny | 150–290 ms / 440–820 ms (n=7) | menos de 2 s |
+
+Faltan: activaciones falsas por hora con TV, pantalla apagada, consumo y arranque tras reinicio. Decisiones derivadas: ADR-018 y ADR-019.

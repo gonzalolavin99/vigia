@@ -9,12 +9,12 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 | 2. Intenciones y recordatorios | Motor de reglas, skills de tiempo, temporizador y recordatorios | Un recordatorio suena tras reiniciar el teléfono |
 | 3. Música | Emparejar Echo, controles multimedia, búsqueda en Apple Music | Play, pausa, siguiente y volumen por voz |
 | 4. Dispositivos | `MockAdapter`, luego adaptadores WiZ y TV Samsung | Prender, apagar y atenuar luces WiZ; apagar la TV y cambiar su volumen; decir la temperatura |
-| 5. Respaldo LLM | Puente en el PC con un CLI de modelo y Ollama de respaldo, skills como herramientas, modo charla. **CLI por decidir mediante ADR:** instrucción vigente dice Codex; ADR-011 dice Claude | Una frase ambigua ejecuta la skill correcta; con el PC apagado no se cuelga |
+| 5. Respaldo LLM | Puente en el PC con Claude del plan Pro y Ollama de respaldo, skills como herramientas, modo charla | Una frase ambigua ejecuta la skill correcta; con el PC apagado no se cuelga |
 | 6. Pulido | Pantalla de ajustes, historial, voz Piper, modo reloj | Una semana de uso sin reiniciar la app a mano |
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 16 oct 2026:** fase 0 iniciada por autorización de Gonzalo. El prototipo compila, pero todavía no se ha probado en el Realme. Ver [estado actual y traspaso](estado-actual.md). La fase 0 sigue abierta.
+**Estado al 20 oct 2026:** fase 0 en curso. El prototipo corre en el Realme; la activación y la voz a texto se cambiaron tras medir (ADR-018, ADR-019). Faltan TV, pantalla apagada, consumo y reinicio. Ver [estado actual](estado-actual.md).
 
 ## Backlog por fase
 
@@ -22,12 +22,12 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 - [x] Crear proyecto React Native bare con código nativo accesible (RN 0.88.0)
 - [x] `VoiceService.kt` como foreground service tipo micrófono
-- [x] Integrar sherpa-onnx: KWS experimental, VAD y Whisper Tiny multilingüe configurado para español
+- [x] Integrar sherpa-onnx: detector de palabra clave, VAD y voz a texto; tras medir, activación híbrida (ADR-018) y NeMo español (ADR-019)
 - [x] Puente de eventos a JS y pantalla de diagnóstico
-- [x] Compilar Kotlin y APK debug arm64-v8a; falta reconstruir APK tras el arreglo final
-- [ ] Medir latencia, activaciones falsas y consumo; registrar resultados en el ADR-004
-- [ ] Instalar/probar en el Realme; el PC no detectó dispositivo ADB en la última comprobación
-- [ ] Confirmar “Alfred” en español e inglés; el KWS seleccionado se entrenó con inglés y esto sigue experimental
+- [x] Compilar APK release arm64-v8a con modelos incluidos (149 MB) e instalar en el Realme
+- [ ] Medir activaciones falsas con TV (2 h), pantalla apagada y consumo; latencia ya medida (NeMo 130–290 ms por comando)
+- [x] Instalar y probar en el Realme (16–20 oct): 5 rondas con registro
+- [ ] Confirmar "Alfred" en español e inglés: híbrido ~65–70 % (9 de ~13, 20 oct; meta más del 90 %); afinar y medir con más casos
 - [ ] Reiniciar el teléfono y comprobar arranque/escucha sin tocarlo (no implementado; restricción Android 11, ADR-003)
 - [ ] Si falla: probar openWakeWord para la palabra clave o el reconocedor nativo para la transcripción
 
@@ -60,7 +60,7 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 ### Fase 5
 
-- [ ] Resolver primero la contradicción entre la instrucción vigente (Codex CLI) y ADR-011/documentación que aún especifica Claude; proponer ADR y sincronizar el documento fuente antes de implementar el puente
+- [ ] Puente Node nativo en Windows con `claude -p` y Ollama, en `server/` (ADR-016)
 - [ ] Cliente con timeout corto y detección de servidor caído
 - [ ] Esquema de herramientas generado desde las skills
 - [ ] Modo charla con historial corto

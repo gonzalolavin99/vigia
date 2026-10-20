@@ -13,7 +13,7 @@ Consulta [estado-actual.md](estado-actual.md) para el último traspaso. La fase 
 ## Continuación de fase 0
 
 ```text
-Lee `AGENTS.md`, `docs/README.md`, `docs/estado-actual.md`, el roadmap y los ADR pertinentes. Sigue únicamente fase 0. El prototipo RN/sherpa-onnx ya existe y compila; no rehagas el scaffold. Primero confirma el estado ADB y pide a Gonzalo reconectar el Realme si no aparece. Instala y prueba el APK en Android 11 arm64: permiso de micrófono, activaciones, transcripción en español, latencia, falsos positivos con TV, pantalla apagada y arranque después de reinicio. Registra solo mediciones reales en ADR-004 y metricas.md. No cierres fase 0 sin sus criterios de salida. No adelantes fases ni cambies la decisión de LLM: la instrucción vigente dice Codex CLI y prohíbe `ANTHROPIC_API_KEY`, pero ADR-011 aún dice Claude; proponer ADR antes de tocar esa arquitectura.
+Lee `CLAUDE.md`, `docs/README.md`, `docs/estado-actual.md`, el roadmap y los ADR pertinentes. Sigue únicamente fase 0. El prototipo RN/sherpa-onnx ya existe y compila; no rehagas el scaffold. Primero confirma el estado ADB y pide a Gonzalo reconectar el Realme si no aparece. Instala y prueba el APK en Android 11 arm64: permiso de micrófono, activaciones, transcripción en español, latencia, falsos positivos con TV, pantalla apagada y arranque después de reinicio. Registra solo mediciones reales en ADR-004 y metricas.md. No cierres fase 0 sin sus criterios de salida. No adelantes fases.
 ```
 
 ## Frases de prueba
@@ -31,5 +31,3 @@ Lee `AGENTS.md`, `docs/README.md`, `docs/estado-actual.md`, el roadmap y los ADR
 ## Permisos de Android
 
 El prototipo actual declara `RECORD_AUDIO`, `FOREGROUND_SERVICE` e `INTERNET`; el servicio declara `foregroundServiceType="microphone"`. No declara aún permisos/receptor de arranque automático. Para planificar fases futuras: `FOREGROUND_SERVICE_MICROPHONE` es de Android 14, `POST_NOTIFICATIONS` de 13, y `SCHEDULE_EXACT_ALARM`/`BLUETOOTH_CONNECT` de 12. Para Android 11 el servicio requiere el tipo micrófono en el manifiesto. La reanudación al encender sigue pendiente según ADR-003.
-
-Se declaran todos, pero en Android 11 solo los de la versión 11 o anterior tienen efecto: `FOREGROUND_SERVICE_MICROPHONE` es de Android 14, `POST_NOTIFICATIONS` de 13, y `SCHEDULE_EXACT_ALARM` y `BLUETOOTH_CONNECT` de 12. Lo que sí exige Android 11 es `foregroundServiceType="microphone"` en el manifiesto. Para arrancar al encender hace falta además `SYSTEM_ALERT_WINDOW`, concedido por ADB (ADR-003).

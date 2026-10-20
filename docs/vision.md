@@ -1,6 +1,6 @@
 # Vigía: asistente de voz local en Android
 
-> Exportado el 2026-10-13 de un Claude Doc histórico. **Vigencia en revisión (16 oct 2026):** la instrucción local más reciente especifica Codex CLI con plan Pro para el futuro puente LLM y prohíbe `ANTHROPIC_API_KEY`. Este documento y ADR-011 todavía describen Claude; esa decisión está pendiente de un ADR actualizado y de sincronización con la fuente de verdad. No implementar el puente basándose en la descripción antigua.
+> Exportado el 2026-10-13 del Claude Doc "Vigía: asistente de voz local en Android" (https://claude.ai/artifact/Fr2Yc83TamqvZpmtDGNhMD), que es la fuente de verdad. El puente LLM usa Claude con el plan Pro (ADR-011, confirmado por Gonzalo el 16 oct).
 
 Vigía convierte un Android viejo en un asistente tipo Alexa que escucha, entiende y ejecuta comandos en el propio teléfono, y solo consulta un servidor cuando necesita un LLM.
 
@@ -50,7 +50,7 @@ Detalle en [adr/](adr/).
 
 | Tema | Dato | Consecuencia |
 | --- | --- | --- |
-| Teléfono | Realme 6 Pro, Android 11, Snapdragon 720G, 8 GB RAM, 108 GB libres | Alcanza para palabra clave y Whisper chico en el teléfono; la fase 0 mide cuál |
+| Teléfono | Realme 6 Pro, Android 11, Snapdragon 720G, 8 GB RAM, 108 GB libres | Alcanza para VAD y NeMo español en el teléfono (comando de 4 s en ~0,2 s); la fase 0 mide cuál |
 | PC | Windows 11 Home, i5-9300H (4c/8t), 16 GB RAM, GTX 1050 3 GB | Ollama de respaldo con un modelo 3B cuantizado (ADR-016) |
 | Luces | WiZ | Control local por UDP, sin nube (ADR-013) |
 | TV | Samsung reciente (Tizen) | Control local por WebSocket; encender requiere Wake-on-LAN (ADR-014) |

@@ -28,3 +28,6 @@ Thumbs.db
 android/app/.cxx/
 debug.keystore
 
+
+# Registros de pruebas en el teléfono (contienen transcripciones)
+eval/**/*.log

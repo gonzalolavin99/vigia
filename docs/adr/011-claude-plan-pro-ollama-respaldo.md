@@ -1,7 +1,5 @@
 # ADR-011: Claude con el plan Pro vía Claude Code, Ollama de respaldo
 
-> **Vigencia en revisión (16 oct 2026):** las instrucciones actuales del proyecto especifican Codex CLI y prohíben `ANTHROPIC_API_KEY`. Este ADR conserva el registro de la decisión anterior; no usarlo como autorización para implementar Claude. Proponer un ADR sustituto y sincronizarlo con la fuente de verdad antes de la fase 5.
-
 **Estado:** Aceptada; revisar si cambian los términos
 
 ## Contexto

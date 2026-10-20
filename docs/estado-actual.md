@@ -1,12 +1,12 @@
 # Estado actual y traspaso
 
-Última actualización: 16 de octubre de 2026. Este archivo permite continuar el trabajo desde otro chat. Lee primero [AGENTS.md](../AGENTS.md), [README.md](../README.md) y el [índice](README.md).
+Última actualización: 16 de octubre de 2026. Este archivo permite continuar el trabajo desde otro chat. Lee primero [CLAUDE.md](../CLAUDE.md), [README.md](../README.md) y el [índice](README.md).
 
 ## Objetivo y decisiones vigentes
 
 Vigía es un asistente de voz local para el Realme 6 Pro con Android 11 (API 30). El audio se procesa en el teléfono; solo texto podría salir hacia el puente local del PC cuando las reglas no entiendan. El código nativo se limita a audio, alarmas y servicio; la lógica de producto va en TypeScript. No adelantar fases.
 
-La instrucción vigente de Gonzalo establece Codex CLI con plan Pro para el futuro puente LLM y prohíbe crear o usar `ANTHROPIC_API_KEY`. **Hay una contradicción documental pendiente:** ADR-011 y varias páginas aún describen Claude Code. Resolverla con un ADR nuevo y reflejar el cambio en el documento fuente enlazado en `docs/README.md` antes de implementar el puente. No se implementó trabajo LLM en fase 0.
+El futuro puente LLM usa Claude Code (`claude -p`) con el plan Pro y Ollama de respaldo (ADR-011, ADR-016); Gonzalo lo confirmó el 16 de octubre tras una sesión que había cambiado la documentación a otro CLI. Nunca crear ni usar `ANTHROPIC_API_KEY`. No se implementó trabajo LLM en fase 0.
 
 ## Estado de fase 0
 
@@ -16,9 +16,9 @@ Implementado en el repositorio:
 
 - Proyecto React Native bare 0.88.0, paquete `cl.vigia.app`, orientado a `arm64-v8a`.
 - Pantalla de diagnóstico: iniciar/detener escucha, contar activaciones, mostrar transcripción y latencia.
-- Servicio foreground Kotlin con `AudioRecord` mono a 16 kHz, sherpa-onnx KWS, Silero VAD y Whisper Tiny multilingüe configurado para español.
+- Servicio foreground Kotlin con `AudioRecord` mono a 16 kHz, wake lock parcial, Silero VAD, activación híbrida (detector sherpa-onnx o "Alfred" en la transcripción, ADR-018) y voz a texto con NeMo FastConformer español (ADR-019). La transcripción corre en un hilo aparte. Registro de eventos en logcat y en `files/logs/vigia-AAAAMMDD.log` del teléfono (`npm run logs`).
 - Audio y modelos permanecen en el dispositivo. Los modelos se descargan/copian con `scripts/prepare-models.ps1`; están fuera de Git. El KWS publicado proviene de GigaSpeech inglés; “HEY ALFRED”, “ALFRED” y “OYE ALFRED” son candidatos experimentales, no validados para español.
-- `npm run doctor` revisa herramientas y sesión de Codex sin hacer una llamada al modelo.
+- `npm run doctor` revisa herramientas, teléfono, Claude (con una llamada corta a `claude -p`), Ollama, WiZ y TV.
 - NDK/CMake requeridos por Gradle instalados bajo `G:\Dev`.
 
 Verificado:
@@ -26,8 +26,7 @@ Verificado:
 - `.\gradlew.bat :app:compileDebugKotlin`: BUILD SUCCESSFUL, tras el arreglo para que el hilo de audio sea dueño de liberar el grabador.
 - `:app:assembleDebug`: BUILD SUCCESSFUL antes de ese último arreglo de cierre; reconstruir el APK tras volver a conectar el teléfono.
 - APK previo: `android/app/build/outputs/apk/debug/app-debug.apk`, arm64-v8a y aproximadamente 135 MiB. Incluye unos 105 MiB de modelos locales. No contiene otras ABI Android.
-- `npm run doctor`: 11/14 sin fallos. Codex CLI, Java 17, ADB, Python/sherpa-onnx detectados. Sin dispositivo ADB; Ollama no respondía; WiZ no respondió; TV omitida por falta de `tvIp`.
-- La comprobación `codex login status` devolvió advertencia de limpieza de directorios temporales por permisos, aunque el comando terminó con código cero. Confirmar con el doctor en la siguiente sesión.
+- `npm run doctor` (16 oct, tarde): 14/14 sin fallos. Realme por ADB (Android 11, arm64-v8a), Echo Pop-WXJ conectado por Bluetooth, 3 WiZ, TV QN50Q8FAAGXZS en 192.168.100.17, Ollama y Claude.
 
 Pendiente para cerrar fase 0:
 
@@ -44,6 +43,6 @@ Reconectar el celular, dejar **Depuración USB** activa y aceptar el diálogo de
 ## Entorno
 
 - Repositorio: `G:\Alexo`; herramientas/SDK/modelos y cachés: `G:\Dev`.
-- No instalar herramientas en `C:`. Codex CLI ya está instalado y detectado por el entorno; no reinstalarlo.
+- No instalar herramientas en `C:`. Claude Code CLI está en `G:\Dev\npm-global`.
 - Modelos ignorados por Git y descargables con `powershell -ExecutionPolicy Bypass -File scripts/prepare-models.ps1`.
 - El APK y las bibliotecas compiladas son artefactos de build; no añadirlos a Git.
