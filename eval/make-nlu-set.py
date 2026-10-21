@@ -1,0 +1,128 @@
+"""Genera eval/nlu.jsonl: frases con la intención y los datos esperados (docs/evaluacion.md).
+"Ahora" fijo: miércoles 21 de octubre de 2026, 18:00. Las fechas se calculan aquí para no escribirlas a mano.
+Frases de Gonzalo (21 oct) marcadas con source=gonzalo; transcripciones reales de NeMo con source=nemo.
+Se alternan dev/test por intención: las reglas se ajustan mirando dev y se reporta test.
+
+Uso: python -I eval/make-nlu-set.py  (escribe eval/nlu.jsonl en UTF-8)
+"""
+import datetime as dt, json, pathlib
+
+NOW = dt.datetime(2026, 10, 21, 18, 0)
+D = lambda days: (NOW.date() + dt.timedelta(days=days)).isoformat()
+TODAY, TOMORROW = D(0), D(1)
+
+cases = [
+    # hora
+    ("¿Qué hora es?", "hora", {}, "gonzalo"),
+    ("What time is it?", "hora", {}, "gonzalo"),
+    ("Oye, ¿me puedes decir la hora?", "hora", {}, "gonzalo"),
+    ("dime la hora", "hora", {}, "yo"),
+    ("¿qué hora tienes?", "hora", {}, "yo"),
+    ("Qué hora es", "hora", {}, "nemo"),
+    ("¿ hora es", "hora", {}, "nemo"),
+    ("Quééra es", "hora", {}, "nemo"),
+    ("quién es", "hora", {}, "nemo"),
+    ("Qué crees?", "hora", {}, "nemo"),
+    ("What s It?", "hora", {}, "nemo"),
+    ("¿Usted qué hora es?", "hora", {}, "nemo"),
+    # fecha
+    ("¿Qué día es hoy?", "fecha", {"date": TODAY}, "gonzalo"),
+    ("¿Qué fecha es hoy?", "fecha", {"date": TODAY}, "gonzalo"),
+    ("¿Qué fecha es mañana?", "fecha", {"date": TOMORROW}, "gonzalo"),
+    ("¿Qué día va a ser mañana?", "fecha", {"date": TOMORROW}, "gonzalo"),
+    ("¿Qué día es mañana?", "fecha", {"date": TOMORROW}, "gonzalo"),
+    ("¿A cuánto estamos mañana?", "fecha", {"date": TOMORROW}, "gonzalo"),
+    ("Oye, ¿qué día es el 20 de noviembre?", "fecha", {"date": "2026-11-20"}, "gonzalo"),
+    ("¿a cuánto estamos?", "fecha", {"date": TODAY}, "yo"),
+    ("¿qué día cae el 25 de diciembre?", "fecha", {"date": "2026-12-25"}, "yo"),
+    ("¿qué día es pasado mañana?", "fecha", {"date": D(2)}, "yo"),
+    ("¿en qué día estamos?", "fecha", {"date": TODAY}, "yo"),
+    ("¿Qué días hoy?", "fecha", {"date": TODAY}, "nemo"),
+    ("¿Qué día es mañana?", "fecha", {"date": TOMORROW}, "nemo"),
+    ("Dime qué día es hoy", "fecha", {"date": TODAY}, "nemo"),
+    ("Mañana qué días", "fecha", {"date": TOMORROW}, "nemo"),
+    ("¿qué día es el primero de enero?", "fecha", {"date": "2027-01-01"}, "yo"),
+    # temporizador
+    ("Ponme un temporizador de 10 minutos", "temporizador.crear", {"seconds": 600}, "gonzalo"),
+    ("Ponme una alarma para 10 minutos más", "temporizador.crear", {"seconds": 600}, "gonzalo"),
+    ("Empieza a correr un temporizador de 5 minutos", "temporizador.crear", {"seconds": 300}, "gonzalo"),
+    ("pon un timer de 5 minutos", "temporizador.crear", {"seconds": 300}, "gonzalo"),
+    ("pon un temporizador de diez minutos", "temporizador.crear", {"seconds": 600}, "yo"),
+    ("temporizador de media hora", "temporizador.crear", {"seconds": 1800}, "yo"),
+    ("pon un temporizador de una hora y quince minutos", "temporizador.crear", {"seconds": 4500}, "yo"),
+    ("timer de 30 segundos", "temporizador.crear", {"seconds": 30}, "yo"),
+    ("avísame en veinte minutos", "temporizador.crear", {"seconds": 1200}, "yo"),
+    ("pon una cuenta regresiva de dos minutos", "temporizador.crear", {"seconds": 120}, "yo"),
+    ("¿cuánto le queda al temporizador?", "temporizador.consultar", {}, "yo"),
+    ("¿cuánto falta?", "temporizador.consultar", {}, "yo"),
+    ("¿cuánto queda del timer?", "temporizador.consultar", {}, "yo"),
+    ("cancela el temporizador", "temporizador.cancelar", {}, "yo"),
+    ("para el timer", "temporizador.cancelar", {}, "yo"),
+    ("apaga la alarma", "temporizador.cancelar", {}, "yo"),
+    # recordatorio.crear
+    ("Recuérdame mañana de llamar a Felipe", "recordatorio.crear", {"text": "llamar a felipe", "date": TOMORROW}, "gonzalo"),
+    ("recuérdame en un mes más de pagar el arriendo", "recordatorio.crear", {"text": "pagar el arriendo", "date": "2026-11-21"}, "gonzalo"),
+    ("Recuérdame el 15 de diciembre de comprar los regalos", "recordatorio.crear", {"text": "comprar los regalos", "date": "2026-12-15"}, "gonzalo"),
+    ("recuérdame llamar a Felipe mañana a las nueve", "recordatorio.crear", {"text": "llamar a felipe", "date": TOMORROW, "time": "09:00"}, "yo"),
+    ("recuérdame sacar la basura a las ocho de la noche", "recordatorio.crear", {"text": "sacar la basura", "date": TODAY, "time": "20:00"}, "yo"),
+    ("recuérdame en dos horas revisar el horno", "recordatorio.crear", {"text": "revisar el horno", "date": TODAY, "time": "20:00"}, "yo"),
+    ("recuérdame en 30 minutos tomar la pastilla", "recordatorio.crear", {"text": "tomar la pastilla", "date": TODAY, "time": "18:30"}, "yo"),
+    ("recuérdame el viernes a las cinco de la tarde ir al banco", "recordatorio.crear", {"text": "ir al banco", "date": D(2), "time": "17:00"}, "yo"),
+    ("ponme un recordatorio para el lunes a las 10 de llamar al dentista", "recordatorio.crear", {"text": "llamar al dentista", "date": D(5), "time": "10:00"}, "yo"),
+    ("recuérdame pasado mañana a las nueve y media que tengo reunión", "recordatorio.crear", {"text": "tengo reunion", "date": D(2), "time": "09:30"}, "yo"),
+    ("recuérdame en tres días renovar el carnet", "recordatorio.crear", {"text": "renovar el carnet", "date": D(3)}, "yo"),
+    ("recuérdame en dos semanas pagar la luz", "recordatorio.crear", {"text": "pagar la luz", "date": D(14)}, "yo"),
+    ("recuérdame mañana al mediodía almorzar con mi mamá", "recordatorio.crear", {"text": "almorzar con mi mama", "date": TOMORROW, "time": "12:00"}, "yo"),
+    ("Recuérdame mañana a las 7 de la mañana ir al gimnasio", "recordatorio.crear", {"text": "ir al gimnasio", "date": TOMORROW, "time": "07:00"}, "yo"),
+    ("Pon una alarma mañana a las 7", "recordatorio.crear", {"text": "alarma", "date": TOMORROW, "time": "07:00"}, "yo"),
+    ("despiértame mañana a las seis y media", "recordatorio.crear", {"text": "alarma", "date": TOMORROW, "time": "06:30"}, "yo"),
+    ("recuérdame a las nueve llamar a Felipe", "recordatorio.crear", {"text": "llamar a felipe", "date": TOMORROW, "time": "09:00"}, "yo"),
+    ("Recuérdame que mañana tengo dentista", "recordatorio.crear", {"text": "tengo dentista", "date": TOMORROW}, "yo"),
+    ("recuerdame el 3 de noviembre a las 4 de la tarde pagar la tarjeta", "recordatorio.crear", {"text": "pagar la tarjeta", "date": "2026-11-03", "time": "16:00"}, "nemo"),
+    ("¿Me puedes poner una alarma para mañana?", "recordatorio.crear", {"text": "alarma", "date": TOMORROW}, "nemo"),
+    # recordatorio.listar
+    ("¿Me podrías decir mis recordatorios de este mes?", "recordatorio.listar", {"range": "month"}, "gonzalo"),
+    ("¿Me podrías decir todos los recordatorios que tengo?", "recordatorio.listar", {"range": "all"}, "gonzalo"),
+    ("¿Qué recordatorios tengo?", "recordatorio.listar", {"range": "all"}, "yo"),
+    ("¿qué tengo para mañana?", "recordatorio.listar", {"range": "tomorrow"}, "yo"),
+    ("¿qué recordatorios tengo hoy?", "recordatorio.listar", {"range": "today"}, "yo"),
+    ("dime mis recordatorios de esta semana", "recordatorio.listar", {"range": "week"}, "yo"),
+    ("lee mis recordatorios", "recordatorio.listar", {"range": "all"}, "yo"),
+    ("¿tengo alguna alarma?", "recordatorio.listar", {"range": "all"}, "yo"),
+    ("¿qué alarmas tengo puestas?", "recordatorio.listar", {"range": "all"}, "yo"),
+    ("¿hay recordatorios para mañana?", "recordatorio.listar", {"range": "tomorrow"}, "yo"),
+    # recordatorio.borrar
+    ("Oye, borra esta alarma", "recordatorio.borrar", {}, "gonzalo"),
+    ("Borra este recordatorio", "recordatorio.borrar", {}, "gonzalo"),
+    ("borra el de las cinco", "recordatorio.borrar", {"time": "17:00"}, "yo"),
+    ("elimina el recordatorio de mañana", "recordatorio.borrar", {"date": TOMORROW}, "yo"),
+    ("borra el recordatorio de llamar a Felipe", "recordatorio.borrar", {"text": "llamar a felipe"}, "yo"),
+    ("cancela la alarma de mañana a las siete", "recordatorio.borrar", {"date": TOMORROW, "time": "07:00"}, "yo"),
+    ("quita el recordatorio del dentista", "recordatorio.borrar", {"text": "dentista"}, "yo"),
+    ("borra todos los recordatorios", "recordatorio.borrar", {"all": True}, "yo"),
+    ("elimina el de pagar la luz", "recordatorio.borrar", {"text": "pagar la luz"}, "yo"),
+    ("borra la alarma de las 7", "recordatorio.borrar", {"time": "07:00"}, "yo"),
+    # fuera de alcance en fase 2 (otras fases o charla)
+    ("¿Puedes poner música?", "desconocido", {}, "nemo"),
+    ("prende la luz del living", "desconocido", {}, "yo"),
+    ("¿Cómo se llama el escritor de Los Simpsons?", "desconocido", {}, "nemo"),
+    ("Cuéntame de tu día", "desconocido", {}, "nemo"),
+    ("¿Estás ahí?", "desconocido", {}, "nemo"),
+    ("¿Todo bien por ahí", "desconocido", {}, "nemo"),
+    ("¿qué temperatura hace afuera?", "desconocido", {}, "yo"),
+    ("conversemos", "desconocido", {}, "yo"),
+    ("sube el volumen", "desconocido", {}, "yo"),
+    ("Can Do Lea to Me", "desconocido", {}, "nemo"),
+    ("¿Cuánto cuesta App hoy día?", "desconocido", {}, "nemo"),
+    ("Hola", "desconocido", {}, "yo"),
+]
+
+seen, lines = {}, []
+for text, intent, slots, source in cases:
+    n = seen.get(intent, 0)
+    seen[intent] = n + 1
+    split = "dev" if n % 2 == 0 else "test"
+    lines.append(json.dumps({"text": text, "intent": intent, "slots": slots, "source": source, "split": split}, ensure_ascii=False))
+out = pathlib.Path(__file__).with_name("nlu.jsonl")
+out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print(f"{len(lines)} frases en {out}")

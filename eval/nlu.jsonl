@@ -1,0 +1,96 @@
+{"text": "¿Qué hora es?", "intent": "hora", "slots": {}, "source": "gonzalo", "split": "dev"}
+{"text": "What time is it?", "intent": "hora", "slots": {}, "source": "gonzalo", "split": "test"}
+{"text": "Oye, ¿me puedes decir la hora?", "intent": "hora", "slots": {}, "source": "gonzalo", "split": "dev"}
+{"text": "dime la hora", "intent": "hora", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿qué hora tienes?", "intent": "hora", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "Qué hora es", "intent": "hora", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿ hora es", "intent": "hora", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Quééra es", "intent": "hora", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "quién es", "intent": "hora", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Qué crees?", "intent": "hora", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "What s It?", "intent": "hora", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "¿Usted qué hora es?", "intent": "hora", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Qué día es hoy?", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "gonzalo", "split": "dev"}
+{"text": "¿Qué fecha es hoy?", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "gonzalo", "split": "test"}
+{"text": "¿Qué fecha es mañana?", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "gonzalo", "split": "dev"}
+{"text": "¿Qué día va a ser mañana?", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "gonzalo", "split": "test"}
+{"text": "¿Qué día es mañana?", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "gonzalo", "split": "dev"}
+{"text": "¿A cuánto estamos mañana?", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "gonzalo", "split": "test"}
+{"text": "Oye, ¿qué día es el 20 de noviembre?", "intent": "fecha", "slots": {"date": "2026-11-20"}, "source": "gonzalo", "split": "dev"}
+{"text": "¿a cuánto estamos?", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "yo", "split": "test"}
+{"text": "¿qué día cae el 25 de diciembre?", "intent": "fecha", "slots": {"date": "2026-12-25"}, "source": "yo", "split": "dev"}
+{"text": "¿qué día es pasado mañana?", "intent": "fecha", "slots": {"date": "2026-10-23"}, "source": "yo", "split": "test"}
+{"text": "¿en qué día estamos?", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "yo", "split": "dev"}
+{"text": "¿Qué días hoy?", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "nemo", "split": "test"}
+{"text": "¿Qué día es mañana?", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "nemo", "split": "dev"}
+{"text": "Dime qué día es hoy", "intent": "fecha", "slots": {"date": "2026-10-21"}, "source": "nemo", "split": "test"}
+{"text": "Mañana qué días", "intent": "fecha", "slots": {"date": "2026-10-22"}, "source": "nemo", "split": "dev"}
+{"text": "¿qué día es el primero de enero?", "intent": "fecha", "slots": {"date": "2027-01-01"}, "source": "yo", "split": "test"}
+{"text": "Ponme un temporizador de 10 minutos", "intent": "temporizador.crear", "slots": {"seconds": 600}, "source": "gonzalo", "split": "dev"}
+{"text": "Ponme una alarma para 10 minutos más", "intent": "temporizador.crear", "slots": {"seconds": 600}, "source": "gonzalo", "split": "test"}
+{"text": "Empieza a correr un temporizador de 5 minutos", "intent": "temporizador.crear", "slots": {"seconds": 300}, "source": "gonzalo", "split": "dev"}
+{"text": "pon un timer de 5 minutos", "intent": "temporizador.crear", "slots": {"seconds": 300}, "source": "gonzalo", "split": "test"}
+{"text": "pon un temporizador de diez minutos", "intent": "temporizador.crear", "slots": {"seconds": 600}, "source": "yo", "split": "dev"}
+{"text": "temporizador de media hora", "intent": "temporizador.crear", "slots": {"seconds": 1800}, "source": "yo", "split": "test"}
+{"text": "pon un temporizador de una hora y quince minutos", "intent": "temporizador.crear", "slots": {"seconds": 4500}, "source": "yo", "split": "dev"}
+{"text": "timer de 30 segundos", "intent": "temporizador.crear", "slots": {"seconds": 30}, "source": "yo", "split": "test"}
+{"text": "avísame en veinte minutos", "intent": "temporizador.crear", "slots": {"seconds": 1200}, "source": "yo", "split": "dev"}
+{"text": "pon una cuenta regresiva de dos minutos", "intent": "temporizador.crear", "slots": {"seconds": 120}, "source": "yo", "split": "test"}
+{"text": "¿cuánto le queda al temporizador?", "intent": "temporizador.consultar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿cuánto falta?", "intent": "temporizador.consultar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿cuánto queda del timer?", "intent": "temporizador.consultar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "cancela el temporizador", "intent": "temporizador.cancelar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "para el timer", "intent": "temporizador.cancelar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "apaga la alarma", "intent": "temporizador.cancelar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "Recuérdame mañana de llamar a Felipe", "intent": "recordatorio.crear", "slots": {"text": "llamar a felipe", "date": "2026-10-22"}, "source": "gonzalo", "split": "dev"}
+{"text": "recuérdame en un mes más de pagar el arriendo", "intent": "recordatorio.crear", "slots": {"text": "pagar el arriendo", "date": "2026-11-21"}, "source": "gonzalo", "split": "test"}
+{"text": "Recuérdame el 15 de diciembre de comprar los regalos", "intent": "recordatorio.crear", "slots": {"text": "comprar los regalos", "date": "2026-12-15"}, "source": "gonzalo", "split": "dev"}
+{"text": "recuérdame llamar a Felipe mañana a las nueve", "intent": "recordatorio.crear", "slots": {"text": "llamar a felipe", "date": "2026-10-22", "time": "09:00"}, "source": "yo", "split": "test"}
+{"text": "recuérdame sacar la basura a las ocho de la noche", "intent": "recordatorio.crear", "slots": {"text": "sacar la basura", "date": "2026-10-21", "time": "20:00"}, "source": "yo", "split": "dev"}
+{"text": "recuérdame en dos horas revisar el horno", "intent": "recordatorio.crear", "slots": {"text": "revisar el horno", "date": "2026-10-21", "time": "20:00"}, "source": "yo", "split": "test"}
+{"text": "recuérdame en 30 minutos tomar la pastilla", "intent": "recordatorio.crear", "slots": {"text": "tomar la pastilla", "date": "2026-10-21", "time": "18:30"}, "source": "yo", "split": "dev"}
+{"text": "recuérdame el viernes a las cinco de la tarde ir al banco", "intent": "recordatorio.crear", "slots": {"text": "ir al banco", "date": "2026-10-23", "time": "17:00"}, "source": "yo", "split": "test"}
+{"text": "ponme un recordatorio para el lunes a las 10 de llamar al dentista", "intent": "recordatorio.crear", "slots": {"text": "llamar al dentista", "date": "2026-10-26", "time": "10:00"}, "source": "yo", "split": "dev"}
+{"text": "recuérdame pasado mañana a las nueve y media que tengo reunión", "intent": "recordatorio.crear", "slots": {"text": "tengo reunion", "date": "2026-10-23", "time": "09:30"}, "source": "yo", "split": "test"}
+{"text": "recuérdame en tres días renovar el carnet", "intent": "recordatorio.crear", "slots": {"text": "renovar el carnet", "date": "2026-10-24"}, "source": "yo", "split": "dev"}
+{"text": "recuérdame en dos semanas pagar la luz", "intent": "recordatorio.crear", "slots": {"text": "pagar la luz", "date": "2026-11-04"}, "source": "yo", "split": "test"}
+{"text": "recuérdame mañana al mediodía almorzar con mi mamá", "intent": "recordatorio.crear", "slots": {"text": "almorzar con mi mama", "date": "2026-10-22", "time": "12:00"}, "source": "yo", "split": "dev"}
+{"text": "Recuérdame mañana a las 7 de la mañana ir al gimnasio", "intent": "recordatorio.crear", "slots": {"text": "ir al gimnasio", "date": "2026-10-22", "time": "07:00"}, "source": "yo", "split": "test"}
+{"text": "Pon una alarma mañana a las 7", "intent": "recordatorio.crear", "slots": {"text": "alarma", "date": "2026-10-22", "time": "07:00"}, "source": "yo", "split": "dev"}
+{"text": "despiértame mañana a las seis y media", "intent": "recordatorio.crear", "slots": {"text": "alarma", "date": "2026-10-22", "time": "06:30"}, "source": "yo", "split": "test"}
+{"text": "recuérdame a las nueve llamar a Felipe", "intent": "recordatorio.crear", "slots": {"text": "llamar a felipe", "date": "2026-10-22", "time": "09:00"}, "source": "yo", "split": "dev"}
+{"text": "Recuérdame que mañana tengo dentista", "intent": "recordatorio.crear", "slots": {"text": "tengo dentista", "date": "2026-10-22"}, "source": "yo", "split": "test"}
+{"text": "recuerdame el 3 de noviembre a las 4 de la tarde pagar la tarjeta", "intent": "recordatorio.crear", "slots": {"text": "pagar la tarjeta", "date": "2026-11-03", "time": "16:00"}, "source": "nemo", "split": "dev"}
+{"text": "¿Me puedes poner una alarma para mañana?", "intent": "recordatorio.crear", "slots": {"text": "alarma", "date": "2026-10-22"}, "source": "nemo", "split": "test"}
+{"text": "¿Me podrías decir mis recordatorios de este mes?", "intent": "recordatorio.listar", "slots": {"range": "month"}, "source": "gonzalo", "split": "dev"}
+{"text": "¿Me podrías decir todos los recordatorios que tengo?", "intent": "recordatorio.listar", "slots": {"range": "all"}, "source": "gonzalo", "split": "test"}
+{"text": "¿Qué recordatorios tengo?", "intent": "recordatorio.listar", "slots": {"range": "all"}, "source": "yo", "split": "dev"}
+{"text": "¿qué tengo para mañana?", "intent": "recordatorio.listar", "slots": {"range": "tomorrow"}, "source": "yo", "split": "test"}
+{"text": "¿qué recordatorios tengo hoy?", "intent": "recordatorio.listar", "slots": {"range": "today"}, "source": "yo", "split": "dev"}
+{"text": "dime mis recordatorios de esta semana", "intent": "recordatorio.listar", "slots": {"range": "week"}, "source": "yo", "split": "test"}
+{"text": "lee mis recordatorios", "intent": "recordatorio.listar", "slots": {"range": "all"}, "source": "yo", "split": "dev"}
+{"text": "¿tengo alguna alarma?", "intent": "recordatorio.listar", "slots": {"range": "all"}, "source": "yo", "split": "test"}
+{"text": "¿qué alarmas tengo puestas?", "intent": "recordatorio.listar", "slots": {"range": "all"}, "source": "yo", "split": "dev"}
+{"text": "¿hay recordatorios para mañana?", "intent": "recordatorio.listar", "slots": {"range": "tomorrow"}, "source": "yo", "split": "test"}
+{"text": "Oye, borra esta alarma", "intent": "recordatorio.borrar", "slots": {}, "source": "gonzalo", "split": "dev"}
+{"text": "Borra este recordatorio", "intent": "recordatorio.borrar", "slots": {}, "source": "gonzalo", "split": "test"}
+{"text": "borra el de las cinco", "intent": "recordatorio.borrar", "slots": {"time": "17:00"}, "source": "yo", "split": "dev"}
+{"text": "elimina el recordatorio de mañana", "intent": "recordatorio.borrar", "slots": {"date": "2026-10-22"}, "source": "yo", "split": "test"}
+{"text": "borra el recordatorio de llamar a Felipe", "intent": "recordatorio.borrar", "slots": {"text": "llamar a felipe"}, "source": "yo", "split": "dev"}
+{"text": "cancela la alarma de mañana a las siete", "intent": "recordatorio.borrar", "slots": {"date": "2026-10-22", "time": "07:00"}, "source": "yo", "split": "test"}
+{"text": "quita el recordatorio del dentista", "intent": "recordatorio.borrar", "slots": {"text": "dentista"}, "source": "yo", "split": "dev"}
+{"text": "borra todos los recordatorios", "intent": "recordatorio.borrar", "slots": {"all": true}, "source": "yo", "split": "test"}
+{"text": "elimina el de pagar la luz", "intent": "recordatorio.borrar", "slots": {"text": "pagar la luz"}, "source": "yo", "split": "dev"}
+{"text": "borra la alarma de las 7", "intent": "recordatorio.borrar", "slots": {"time": "07:00"}, "source": "yo", "split": "test"}
+{"text": "¿Puedes poner música?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "prende la luz del living", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿Cómo se llama el escritor de Los Simpsons?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Cuéntame de tu día", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Estás ahí?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "¿Todo bien por ahí", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿qué temperatura hace afuera?", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "conversemos", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
+{"text": "sube el volumen", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "Can Do Lea to Me", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Cuánto cuesta App hoy día?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Hola", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
