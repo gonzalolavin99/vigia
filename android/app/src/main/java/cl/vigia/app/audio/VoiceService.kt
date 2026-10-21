@@ -23,7 +23,7 @@ import com.k2fsa.sherpa.onnx.FeatureConfig
 import com.k2fsa.sherpa.onnx.KeywordSpotter
 import com.k2fsa.sherpa.onnx.KeywordSpotterConfig
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
-import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTransducerModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OnlineModelConfig
@@ -121,7 +121,7 @@ class VoiceService : Service() {
         vad = newVad(File(root, "silero_vad.onnx"), COMMAND_VAD_THRESHOLD)
         commandVad = vad
         listenVad = newVad(File(root, "silero_vad.onnx"), LISTEN_VAD_THRESHOLD)
-        nemo = OfflineRecognizer(config = OfflineRecognizerConfig(featConfig = FeatureConfig(sampleRate = SAMPLE_RATE, featureDim = 80), modelConfig = OfflineModelConfig(nemo = OfflineNemoEncDecCtcModelConfig(model = File(root, "nemo-es/model.int8.onnx").path), tokens = File(root, "nemo-es/tokens.txt").path, numThreads = 2, provider = "cpu")))
+        nemo = OfflineRecognizer(config = OfflineRecognizerConfig(featConfig = FeatureConfig(sampleRate = SAMPLE_RATE, featureDim = 80), modelConfig = OfflineModelConfig(transducer = OfflineTransducerModelConfig(encoder = File(root, "$NEMO/encoder.int8.onnx").path, decoder = File(root, "$NEMO/decoder.int8.onnx").path, joiner = File(root, "$NEMO/joiner.int8.onnx").path), tokens = File(root, "$NEMO/tokens.txt").path, numThreads = 2, provider = "cpu", modelType = "nemo_transducer")))
         if (saveAudio) evalDir = File(getExternalFilesDir(null), "eval").apply { mkdirs() }
 
         val minimum = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
@@ -487,12 +487,14 @@ class VoiceService : Service() {
     // de frases largas. Simulado sobre el 20 oct: 0 falsas con TV y 12 de 12 intentos reales.
     private const val WAKE_MAX_WORDS_BEFORE = 2
     private const val WAKE_MAX_SEGMENT_MS = 6000L
+    // NeMo FastConformer transducer español (ADR-019): desde lejos entendió 8/9 "qué hora es" contra 5/9 del CTC (21 oct).
+    private const val NEMO = "nemo-es-rnnt"
     private const val KWS_ENCODER = "encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
     private const val KWS_DECODER = "decoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
     private const val KWS_JOINER = "joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
     private val REQUIRED = listOf(
       "kws/$KWS_ENCODER", "kws/$KWS_DECODER", "kws/$KWS_JOINER", "kws/tokens.txt", "kws/bpe.model", "kws/keywords.txt",
-      "nemo-es/model.int8.onnx", "nemo-es/tokens.txt", "silero_vad.onnx",
+      "$NEMO/encoder.int8.onnx", "$NEMO/decoder.int8.onnx", "$NEMO/joiner.int8.onnx", "$NEMO/tokens.txt", "silero_vad.onnx",
     )
   }
 }

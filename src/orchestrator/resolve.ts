@@ -1,7 +1,8 @@
 import {decirHora, pideHora} from '../skills/hora';
 import type {Reply} from './machine';
 
-export const UNKNOWN_MESSAGE = 'Todavía no sé hacer eso. Por ahora puedo decirte la hora.';
+// Casi todo lo que no calza es una transcripción confusa (voz lejana), no un pedido nuevo: se dice que no entendió.
+export const UNKNOWN_MESSAGE = 'No te entendí bien. Por ahora solo sé decirte la hora.';
 
 // Resolución mínima de la fase 1. El motor de reglas con skills por dominio es de la fase 2 (ADR-006).
 export async function resolvePhaseOne(text: string, now: () => Date = () => new Date()): Promise<Reply> {

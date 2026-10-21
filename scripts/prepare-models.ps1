@@ -24,7 +24,7 @@ function Get-ModelArchive([string]$Url, [string]$Archive, [string]$Directory) {
 
 $kwsName = 'sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01'
 # Modelo solo español (NVIDIA NeMo, 1424 h) para comandos y activación por texto (ADR-018, ADR-019).
-$nemoName = 'sherpa-onnx-nemo-fast-conformer-ctc-es-1424-int8'
+$nemoName = 'sherpa-onnx-nemo-fast-conformer-transducer-es-1424-int8'
 $kwsSource = Join-Path $modelCache $kwsName
 $nemoSource = Join-Path $modelCache $nemoName
 Get-ModelArchive "https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/$kwsName.tar.bz2" (Join-Path $modelCache "$kwsName.tar.bz2") $kwsSource
@@ -33,12 +33,12 @@ $vadModel = Join-Path $modelRoot 'silero_vad.onnx'
 if (!(Test-Path $vadModel)) { Invoke-WebRequest 'https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx' -OutFile $vadModel }
 
 $kwsAssets = Join-Path $assetRoot 'kws'
-$nemoAssets = Join-Path $assetRoot 'nemo-es'
+$nemoAssets = Join-Path $assetRoot 'nemo-es-rnnt'
 New-Item -ItemType Directory -Force $kwsAssets, $nemoAssets | Out-Null
 foreach ($name in @('encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'decoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'tokens.txt', 'bpe.model')) {
   Copy-Item (Join-Path $kwsSource $name) $kwsAssets -Force
 }
-foreach ($name in @('model.int8.onnx', 'tokens.txt')) {
+foreach ($name in @('encoder.int8.onnx', 'decoder.int8.onnx', 'joiner.int8.onnx', 'tokens.txt')) {
   Copy-Item (Join-Path $nemoSource $name) $nemoAssets -Force
 }
 Copy-Item $vadModel (Join-Path $assetRoot 'silero_vad.onnx') -Force

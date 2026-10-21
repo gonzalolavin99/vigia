@@ -1,6 +1,6 @@
 # ADR-019: NeMo FastConformer en español para voz a texto
 
-**Estado:** Aceptada (17 oct); reemplaza a Whisper tiny del ADR-004
+**Estado:** Aceptada (17 oct); reemplaza a Whisper tiny del ADR-004. Variante cambiada a transducer el 21 oct (ver abajo)
 
 ## Contexto
 
@@ -23,3 +23,15 @@ Con 7 comandos la muestra es chica: el WER real se mide con `eval/stt/` (meta me
 ## Alternativas
 
 Whisper base (más pesado y lento que tiny); Moonshine base es (51 MB, no probado; candidato si NeMo falla en ruido).
+
+## Actualización 21 oct: transducer en vez de CTC
+
+Desde unos 3 m la versión CTC confundía el comando ("¿quéra es", "¿Quée hora es", "¿Y usted qué es?"). Se comparó con `sherpa-onnx-nemo-fast-conformer-transducer-es-1424-int8` (mismo entrenamiento y tamaño) sobre los mismos audios grabados en el Realme (`scripts/eval-stt.py`):
+
+| | CTC | Transducer |
+| --- | --- | --- |
+| "Hola Alfred, ¿qué hora es?" desde ~3 m: entendió "qué hora es" | 5 de 9 | 8 de 9 |
+| Tiempo por comando en el PC (2 hilos, n=10) | 142 ms | 162 ms |
+
+La app usa el transducer (`assets/models/nemo-es-rnnt`). Muestra chica: se repite con `eval/stt/` al crecer el set.
+
