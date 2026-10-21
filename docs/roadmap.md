@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 21 oct 2026:** fases 0, 1 y 2 cerradas. Por decisión de Gonzalo se adelantó de la fase 6 una primera versión de la pantalla principal (esfera de estado, temporizadores en vivo, recordatorios por día e historial; ajustes aparte). Siguiente: fase 3 (música). Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó y la precisión con ruido sigue en la fase 2 (reglas tolerantes y set `eval/`). Fase 2 en curso.
+**Estado al 21 oct 2026:** fases 0, 1 y 2 cerradas. Por decisión de Gonzalo se adelantó de la fase 6 una primera versión de la pantalla principal (esfera de estado, temporizadores en vivo, recordatorios por día e historial; ajustes aparte). Siguiente: fase 3 (música). Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó; la precisión con ruido se sigue midiendo con el set `eval/`.
 
 ## Backlog por fase
 
