@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 21 oct 2026:** fases 0, 1 y 2 cerradas. Por decisión de Gonzalo se adelantó de la fase 6 una primera versión de la pantalla principal (esfera de estado, temporizadores en vivo, recordatorios por día e historial; ajustes aparte). Siguiente: fase 3 (música). Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó; la precisión con ruido se sigue midiendo con el set `eval/`.
+**Estado al 22 oct 2026:** fases 0 a 3 cerradas. Por decisión de Gonzalo se adelantó de la fase 6 una primera versión de la pantalla principal (esfera de estado, temporizadores en vivo, recordatorios por día e historial; ajustes aparte). Siguiente: fase 4 (dispositivos). Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó; la precisión con ruido se sigue midiendo con el set `eval/`.
 
 ## Backlog por fase
 
@@ -49,9 +49,10 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 ### Fase 3
 
-- [ ] Detectar Echo conectado por Bluetooth
-- [ ] Controles multimedia del sistema
-- [ ] Probar búsqueda por intent en Apple Music y documentar el límite
+- [x] Detectar Echo conectado por Bluetooth (A2DP, `AudioManager.getDevices`)
+- [x] Controles de reproducción por la sesión multimedia de Apple Music (pausa, sigue, siguiente, anterior) y volumen
+- [x] "Pon X" con `playFromSearch` en la sesión, indicando artista, canción o álbum; dice lo que de verdad sonó
+- [x] Probado en el Realme el 21–22 oct: reproducir, pausar, volumen y búsqueda por artista funcionan. Límite: títulos en inglés que NeMo transcribe mal ("bohemia en Rhapsody")
 
 ### Fase 4
 

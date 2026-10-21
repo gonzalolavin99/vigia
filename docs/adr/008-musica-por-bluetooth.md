@@ -17,3 +17,16 @@ Control básico confiable. Pedir una canción específica por nombre depende de 
 ## Alternativas
 
 Integración no oficial de Alexa; cambiar a un servicio con API de reproducción remota.
+
+## Actualización 22 oct: cómo se controla Apple Music
+
+Probado en el Realme con Apple Music 6.5.3:
+
+| Vía | Resultado |
+| --- | --- |
+| Intent `MEDIA_PLAY_FROM_SEARCH` desde otra app | Abre Apple Music y no reproduce (parece reservado a Google Assistant) |
+| Teclas multimedia | Funcionan si Apple Music ya tiene algo en cola |
+| Sesión multimedia (`MediaController`) | Acepta `PLAY_FROM_SEARCH`, play, pausa, saltos; es la vía elegida |
+
+Obtener la sesión de otra app exige "Acceso a notificaciones". Gonzalo lo autorizó el 22 oct solo para esto; `MediaListener` no lee ni guarda notificaciones. La búsqueda lleva los mismos extras que Google Assistant (`EXTRA_MEDIA_FOCUS`, artista, título, álbum) y la respuesta dice lo que de verdad empezó a sonar.
+
