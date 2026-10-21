@@ -18,10 +18,12 @@ export interface ReminderStore {
   remove(id: number): Promise<void>;
 }
 
+export type MusicSearch = {query: string; focus?: 'artist' | 'song' | 'album'; artist?: string};
+
 /** Apple Music y volumen en el teléfono (ADR-008); el audio sale por el Echo si está conectado por Bluetooth. */
 export interface MusicPlayer {
-  /** Con query busca y reproduce; sin query reanuda. false si Apple Music no respondió. */
-  play(query?: string): Promise<boolean>;
+  /** Con búsqueda la reproduce; sin ella reanuda. false si Apple Music no respondió. */
+  play(search?: MusicSearch): Promise<boolean>;
   pause(): Promise<void>;
   next(): Promise<void>;
   previous(): Promise<void>;
@@ -131,10 +133,14 @@ export class Assistant {
     if (!music) return {say: 'La música todavía no está disponible.'};
     switch (intent) {
       case 'musica.reproducir': {
-        const ok = await music.play(slots.query);
+        const search = slots.query ? {query: slots.query, focus: slots.focus, artist: slots.artist} : undefined;
+        const ok = await music.play(search);
         if (!ok) return {say: slots.query ? `No pude poner ${slots.query} en Apple Music.` : 'No pude retomar la música en Apple Music.'};
         const where = (await music.speaker()) ? '' : ' El Echo no está conectado, así que suena en el teléfono.';
-        return {say: slots.query ? `Pongo ${slots.query}.${where}` : where.trim()};
+        if (!slots.query) return {say: where.trim()};
+        // Se dice lo que de verdad sonó: si Apple Music entendió otra cosa, se nota al tiro (22 oct: "Killer Queen").
+        const song = await music.nowPlaying();
+        return {say: `${song ? `Pongo ${song.title}, de ${song.artist}.` : `Pongo ${slots.query}.`}${where}`};
       }
       case 'musica.pausar': await music.pause(); return {say: ''};
       case 'musica.continuar': {

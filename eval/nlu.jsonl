@@ -85,11 +85,14 @@
 {"text": "¿Puedes poner música?", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "dev"}
 {"text": "pon música", "intent": "musica.reproducir", "slots": {}, "source": "yo", "split": "test"}
 {"text": "Alfred, pon Bohemian Rhapsody", "intent": "musica.reproducir", "slots": {"query": "bohemian rhapsody"}, "source": "yo", "split": "dev"}
-{"text": "pon música de Queen", "intent": "musica.reproducir", "slots": {"query": "queen"}, "source": "yo", "split": "test"}
+{"text": "pon música de Queen", "intent": "musica.reproducir", "slots": {"query": "queen", "focus": "artist"}, "source": "yo", "split": "test"}
 {"text": "reproduce Soda Stereo", "intent": "musica.reproducir", "slots": {"query": "soda stereo"}, "source": "yo", "split": "dev"}
-{"text": "quiero escuchar algo de Coldplay", "intent": "musica.reproducir", "slots": {"query": "coldplay"}, "source": "yo", "split": "test"}
-{"text": "ponme la canción Vivir sin aire de Maná", "intent": "musica.reproducir", "slots": {"query": "vivir sin aire de mana"}, "source": "yo", "split": "dev"}
-{"text": "pon el álbum Thriller", "intent": "musica.reproducir", "slots": {"query": "thriller"}, "source": "yo", "split": "test"}
+{"text": "quiero escuchar algo de Coldplay", "intent": "musica.reproducir", "slots": {"query": "coldplay", "focus": "artist"}, "source": "yo", "split": "test"}
+{"text": "ponme la canción Vivir sin aire de Maná", "intent": "musica.reproducir", "slots": {"query": "vivir sin aire", "artist": "mana", "focus": "song"}, "source": "yo", "split": "dev"}
+{"text": "pon el álbum Thriller", "intent": "musica.reproducir", "slots": {"query": "thriller", "focus": "album"}, "source": "yo", "split": "test"}
+{"text": "reproduce a Queen", "intent": "musica.reproducir", "slots": {"query": "queen", "focus": "artist"}, "source": "nemo", "split": "dev"}
+{"text": "Pon bohemia en Rhapsody.", "intent": "musica.reproducir", "slots": {"query": "bohemia en rhapsody"}, "source": "nemo", "split": "test"}
+{"text": "pon canciones de Shakira", "intent": "musica.reproducir", "slots": {"query": "shakira", "focus": "artist"}, "source": "yo", "split": "dev"}
 {"text": "pausa", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "pausa la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "test"}
 {"text": "detén la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}

@@ -9,6 +9,7 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Bundle
+import android.provider.MediaStore
 import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.util.Log
@@ -50,20 +51,37 @@ object Music {
   }
 
   /** Con query busca y reproduce; sin query reanuda. Espera hasta 8 s a que suene. Bloquea: llamar fuera del hilo principal. */
-  fun play(context: Context, query: String?): Boolean {
+  fun play(context: Context, query: String?, focus: String? = null, artist: String? = null): Boolean {
     val controller = sessionOrLaunch(context) ?: return mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY).let { false }
+    // Si ya sonaba algo, se espera a que cambie la canción para no anunciar la anterior.
+    val before = if (query.isNullOrBlank()) null else controller.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
     if (query.isNullOrBlank()) controller.transportControls.play()
-    else controller.transportControls.playFromSearch(query, Bundle())
+    else controller.transportControls.playFromSearch(listOfNotNull(query, artist).joinToString(" "), searchExtras(query, focus, artist))
     val until = SystemClock.elapsedRealtime() + 8000
     while (SystemClock.elapsedRealtime() < until) {
-      if (controller.playbackState?.state == PlaybackState.STATE_PLAYING) {
-        Log.i(TAG, "t=${System.currentTimeMillis()} music_play query=${query.orEmpty()} title=${nowPlaying(context)?.first}")
+      val changed = before == null || controller.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE) != before
+      if (controller.playbackState?.state == PlaybackState.STATE_PLAYING && changed) {
+        SystemClock.sleep(600) // los metadatos llegan un poco después del estado PLAYING
+        Log.i(TAG, "t=${System.currentTimeMillis()} music_play query=${query.orEmpty()} focus=${focus.orEmpty()} artist=${artist.orEmpty()} title=${nowPlaying(context)?.first}")
         return true
       }
       SystemClock.sleep(250)
     }
     Log.i(TAG, "t=${System.currentTimeMillis()} music_play_failed query=${query.orEmpty()} state=${controller.playbackState?.state}")
     return false
+  }
+
+  // Los mismos datos que entrega Google Assistant: le dicen a Apple Music si se pide un artista, una canción o un álbum.
+  private fun searchExtras(query: String, focus: String?, artist: String?) = Bundle().apply {
+    when (focus) {
+      "artist" -> { putString(MediaStore.EXTRA_MEDIA_FOCUS, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE); putString(MediaStore.EXTRA_MEDIA_ARTIST, query) }
+      "album" -> { putString(MediaStore.EXTRA_MEDIA_FOCUS, MediaStore.Audio.Albums.ENTRY_CONTENT_TYPE); putString(MediaStore.EXTRA_MEDIA_ALBUM, query) }
+      "song" -> {
+        putString(MediaStore.EXTRA_MEDIA_FOCUS, "vnd.android.cursor.item/audio")
+        putString(MediaStore.EXTRA_MEDIA_TITLE, query)
+        artist?.let { putString(MediaStore.EXTRA_MEDIA_ARTIST, it) }
+      }
+    }
   }
 
   fun pause(context: Context) { session(context)?.transportControls?.pause() ?: mediaKey(context, KeyEvent.KEYCODE_MEDIA_PAUSE) }

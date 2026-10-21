@@ -15,6 +15,10 @@ export type Slots = {
   all?: boolean;
   /** Qué poner en Apple Music ("queen", "bohemian rhapsody"). */
   query?: string;
+  /** Si la búsqueda es de un artista, una canción o un álbum (se le pasa a Apple Music). */
+  focus?: 'artist' | 'song' | 'album';
+  /** Artista de una canción pedida como "la canción X de Y". */
+  artist?: string;
   /** Volumen pedido, 0–100. */
   percent?: number;
 };
@@ -166,7 +170,18 @@ function parseMusic(text: string): Intent | null {
   }
   const verb = text.match(PLAY_VERB);
   if (verb) {
-    const query = `${text.slice(verb.index! + verb[0].length).trim()} `.replace(QUERY_LEADING, '').trim();
+    // Qué tipo de cosa se pide: Apple Music confunde artista y canción si no se le dice (22 oct: "a queen").
+    const rest = text.slice(verb.index! + verb[0].length).replace(/^\s*(me|te|puedes|podrias|quiero)\s+/, '').trim();
+    const album = rest.match(/^(el\s+|un\s+)?(album|disco)\s+(.+)$/);
+    if (album) return {intent: 'musica.reproducir', slots: {query: album[3], focus: 'album'}};
+    const song = rest.match(/^(la\s+)?(cancion|tema)\s+(.+)$/);
+    if (song) {
+      const byArtist = song[3].match(/^(.+)\s+de\s+(.+)$/);
+      return {intent: 'musica.reproducir', slots: byArtist ? {query: byArtist[1], artist: byArtist[2], focus: 'song'} : {query: song[3], focus: 'song'}};
+    }
+    const artist = rest.match(/^(a\s+|al\s+)?(un poco de|algo de|musica de|canciones de|temas de|a)\s+(.+)$/);
+    if (artist) return {intent: 'musica.reproducir', slots: {query: artist[3], focus: 'artist'}};
+    const query = `${rest} `.replace(QUERY_LEADING, '').trim();
     return {intent: 'musica.reproducir', slots: query ? {query} : {}};
   }
   return null;

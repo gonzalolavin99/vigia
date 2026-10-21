@@ -11,7 +11,7 @@ const nativeStore: ReminderStore = {
 };
 // Apple Music y volumen en Android (ADR-008).
 const nativeMusic: MusicPlayer = {
-  play: query => VigiaAudio.musicPlay(query ?? null),
+  play: search => VigiaAudio.musicPlay(search?.query ?? null, search?.focus ?? null, search?.artist ?? null),
   pause: async () => { await VigiaAudio.musicPause(); },
   next: async () => { await VigiaAudio.musicNext(); },
   previous: async () => { await VigiaAudio.musicPrevious(); },

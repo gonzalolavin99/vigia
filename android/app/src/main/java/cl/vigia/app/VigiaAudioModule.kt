@@ -78,10 +78,10 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
   }
   @ReactMethod fun stopAlarm() { Ringer.stop("button") }
   // Música (fase 3, ADR-008). play puede tardar (abrir Apple Music, esperar que suene): va en un hilo aparte.
-  @ReactMethod fun musicPlay(query: String?, promise: Promise) {
+  @ReactMethod fun musicPlay(query: String?, focus: String?, artist: String?, promise: Promise) {
     kotlin.concurrent.thread(name = "VigiaMusic") {
       try {
-        val ok = Music.play(context, query)
+        val ok = Music.play(context, query, focus, artist)
         // Si hubo que abrir Apple Music, la esfera vuelve al frente.
         MainActivity.bringToFront(context)
         promise.resolve(ok)

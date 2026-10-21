@@ -18,7 +18,7 @@ type VigiaAudioModule = {
   listVoices(): Promise<{voices: Voice[]; current: string | null}>;
   setVoice(name: string): void;
   stopAlarm(): void;
-  musicPlay(query: string | null): Promise<boolean>;
+  musicPlay(query: string | null, focus: string | null, artist: string | null): Promise<boolean>;
   musicPause(): Promise<boolean>;
   musicNext(): Promise<boolean>;
   musicPrevious(): Promise<boolean>;

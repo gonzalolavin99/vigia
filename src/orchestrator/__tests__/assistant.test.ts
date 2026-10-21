@@ -149,7 +149,7 @@ describe('música', () => {
     const calls: string[] = [];
     let volume = 40;
     const music = {
-      play: async (q?: string) => { calls.push(`play:${q ?? ''}`); return true; },
+      play: async (s?: {query: string; focus?: string; artist?: string}) => { calls.push(`play:${s ? [s.query, s.focus, s.artist].filter(Boolean).join('|') : ''}`); return true; },
       pause: async () => { calls.push('pause'); },
       next: async () => { calls.push('next'); },
       previous: async () => { calls.push('previous'); },
@@ -165,14 +165,14 @@ describe('música', () => {
 
   it('pone lo pedido y lo confirma', async () => {
     const {calls, assistant} = withMusic();
-    await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Pongo queen.'});
-    expect(calls).toEqual(['play:queen']);
+    await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Pongo Bohemian Rhapsody, de Queen.'});
+    expect(calls).toEqual(['play:queen|artist']);
   });
 
   it('avisa si el Echo no está conectado', async () => {
     const {assistant} = withMusic(null);
     const reply = await assistant.resolve('pon Bohemian Rhapsody');
-    expect(reply.say).toBe('Pongo bohemian rhapsody. El Echo no está conectado, así que suena en el teléfono.');
+    expect(reply.say).toBe('Pongo Bohemian Rhapsody, de Queen. El Echo no está conectado, así que suena en el teléfono.');
   });
 
   it.each([['pausa', 'pause'], ['siguiente', 'next'], ['anterior', 'previous'], ['sigue con la música', 'play:']])(
