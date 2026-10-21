@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 21 oct 2026:** fases 0 y 1 cerradas. Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó y la precisión con ruido sigue en la fase 2 (reglas tolerantes y set `eval/`). Fase 2 en curso.
+**Estado al 21 oct 2026:** fases 0, 1 y 2 cerradas. Por decisión de Gonzalo se adelantó de la fase 6 una primera versión de la pantalla principal (esfera de estado, temporizadores en vivo, recordatorios por día e historial; ajustes aparte). Siguiente: fase 3 (música). Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó y la precisión con ruido sigue en la fase 2 (reglas tolerantes y set `eval/`). Fase 2 en curso.
 
 ## Backlog por fase
 
@@ -40,11 +40,12 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 ### Fase 2
 
-- [ ] Normalizador de números, horas y fechas relativas en español
-- [ ] Tabla de frases de prueba por intención (mínimo 10 cada una)
-- [ ] SQLite con migraciones
-- [ ] Alarmas exactas y reprogramación tras reinicio
-- [ ] "¿Qué recordatorios tengo?" y "borra el de las cinco"
+- [x] Normalizador de números, horas y fechas relativas en español (`src/nlu`)
+- [x] Set de frases por intención: `eval/nlu.jsonl`, 96 frases (de Gonzalo, transcripciones reales y sintéticas); intención y slots 100 % en dev y test (test visto en parte al ajustar)
+- [x] Recordatorios en SQLite con alarmas exactas (`setAlarmClock`) y reprogramación al encender (ADR-009)
+- [x] Hora, fecha (incluido "¿qué día es el 20 de noviembre?"), temporizadores, crear, listar y borrar recordatorios, con preguntas cuando falta un dato
+- [x] Alarmas y temporizadores se detienen con "Alfred, para", "para" o el botón (pulsos de 2 s, máximo 2 min)
+- [x] Probado en el Realme el 21 oct: temporizador sonó a los 5,01 s y se detuvo con la voz; recordatorio con pregunta de hora; Gonzalo confirmó recordatorio tras reinicio
 
 ### Fase 3
 

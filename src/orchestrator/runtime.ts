@@ -1,6 +1,7 @@
 import {onAudioEvent, VigiaAudio} from '../native/vigiaAudio';
 import {Assistant, Reminder, ReminderStore} from './assistant';
 import {Orchestrator} from './machine';
+import {recordHistory} from './history';
 
 // Recordatorios guardados en Android (SQLite + AlarmManager, ADR-009).
 const nativeStore: ReminderStore = {
@@ -19,6 +20,8 @@ export const orchestrator = new Orchestrator({
   listenAgain: () => VigiaAudio.listenAgain(),
   endTurn: () => VigiaAudio.endTurn(),
 });
+
+recordHistory(orchestrator);
 
 onAudioEvent(event => {
   switch (event.type) {
