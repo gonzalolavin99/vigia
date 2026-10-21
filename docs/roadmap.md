@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 20 oct 2026:** fase 0 en curso. El prototipo corre en el Realme; la activación y la voz a texto se cambiaron tras medir (ADR-018, ADR-019). Faltan TV, pantalla apagada, consumo y reinicio. Ver [estado actual](estado-actual.md).
+**Estado al 20 oct 2026:** fase 0 cumple sus criterios salvo la corrida formal de 2 h con TV. Activación ~92 %, comando en ~0,15 s, pantalla apagada y arranque tras reinicio verificados en el Realme (ADR-018, ADR-019). Ver [estado actual](estado-actual.md).
 
 ## Backlog por fase
 
@@ -25,11 +25,11 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 - [x] Integrar sherpa-onnx: detector de palabra clave, VAD y voz a texto; tras medir, activación híbrida (ADR-018) y NeMo español (ADR-019)
 - [x] Puente de eventos a JS y pantalla de diagnóstico
 - [x] Compilar APK release arm64-v8a con modelos incluidos (149 MB) e instalar en el Realme
-- [ ] Medir activaciones falsas con TV (2 h), pantalla apagada y consumo; latencia ya medida (NeMo 130–290 ms por comando)
+- [ ] Medir activaciones falsas con TV: 0 en 24 min reales y 0 simuladas en 67 min con la regla de inicio de frase (20 oct); falta la corrida formal de 2 h (A2). Pantalla apagada: 67 min sin cortes. Latencia: NeMo 120–290 ms por comando
 - [x] Instalar y probar en el Realme (16–20 oct): 5 rondas con registro
-- [ ] Confirmar "Alfred" en español e inglés: híbrido ~65–70 % (9 de ~13, 20 oct; meta más del 90 %); afinar y medir con más casos
-- [ ] Reiniciar el teléfono y comprobar arranque/escucha sin tocarlo (no implementado; restricción Android 11, ADR-003)
-- [ ] Si falla: probar openWakeWord para la palabra clave o el reconocedor nativo para la transcripción
+- [x] Confirmar "Alfred" en español e inglés: 12 de ~13 (~92 %) con teléfono bloqueado (20 oct); "Hey Alfred" también por el detector
+- [x] Reiniciar el teléfono: el servicio arrancó solo con micrófono real y respondió "¿Qué hora es?" (20 oct, ADR-003). Requiere "Mostrar sobre otras apps" e inicio automático activados a mano en el Realme
+- [x] Alternativa al detector: activación por texto con NeMo (ADR-018) en vez de openWakeWord
 
 ### Fase 1
 

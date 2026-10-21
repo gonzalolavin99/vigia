@@ -31,3 +31,7 @@ debug.keystore
 
 # Registros de pruebas en el teléfono (contienen transcripciones)
 eval/**/*.log
+
+# Audios y transcripciones de la voz de Gonzalo: solo locales
+eval/phase0/audio/
+eval/phase0/device-logs/
