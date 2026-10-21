@@ -3,5 +3,30 @@
   "tvMac": "AA:BB:CC:DD:EE:FF",
   "bridgePort": 8787,
   "latitude": -33.45,
-  "longitude": -70.66
+  "longitude": -70.66,
+  "place": "Comuna, sector",
+  "devices": [
+    {
+      "id": "luz-living",
+      "name": "luz living",
+      "kind": "light",
+      "brand": "wiz",
+      "mac": "aabbccddeeff",
+      "ip": "192.168.1.30",
+      "zone": "living",
+      "groups": [
+        "casa"
+      ]
+    },
+    {
+      "id": "tele",
+      "name": "tele",
+      "kind": "tv",
+      "brand": "samsung",
+      "mac": "AA:BB:CC:DD:EE:FF",
+      "ip": "192.168.1.50",
+      "zone": "living",
+      "groups": []
+    }
+  ]
 }

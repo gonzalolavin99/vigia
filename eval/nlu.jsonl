@@ -115,12 +115,38 @@
 {"text": "¿qué canción es esta?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "¿qué está sonando?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "test"}
 {"text": "¿cómo se llama esta canción?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "dev"}
-{"text": "prende la luz del living", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
-{"text": "¿Cómo se llama el escritor de Los Simpsons?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
-{"text": "Cuéntame de tu día", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
-{"text": "¿Estás ahí?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
-{"text": "¿Todo bien por ahí", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
-{"text": "¿qué temperatura hace afuera?", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
+{"text": "prende la luz del living", "intent": "luz.encender", "slots": {"target": "la luz del living"}, "source": "yo", "split": "dev"}
+{"text": "apaga la luz de la cocina", "intent": "luz.apagar", "slots": {"target": "la luz de la cocina"}, "source": "yo", "split": "dev"}
+{"text": "enciende las luces de la cocina", "intent": "luz.encender", "slots": {"target": "las luces de la cocina"}, "source": "yo", "split": "test"}
+{"text": "apaga la luz del pasillo", "intent": "luz.apagar", "slots": {"target": "la luz del pasillo"}, "source": "yo", "split": "test"}
+{"text": "apaga todo", "intent": "luz.apagar", "slots": {"target": "todo"}, "source": "gonzalo", "split": "dev"}
+{"text": "apaga la casa", "intent": "luz.apagar", "slots": {"target": "la casa"}, "source": "gonzalo", "split": "test"}
+{"text": "prende todas las luces", "intent": "luz.encender", "slots": {"target": "todas las luces"}, "source": "yo", "split": "dev"}
+{"text": "prende la luz", "intent": "luz.encender", "slots": {"target": "la luz"}, "source": "yo", "split": "test"}
+{"text": "prende la cocina", "intent": "luz.encender", "slots": {"target": "la cocina"}, "source": "yo", "split": "dev"}
+{"text": "Alfred, apaga las luces.", "intent": "luz.apagar", "slots": {"target": "las luces"}, "source": "yo", "split": "dev"}
+{"text": "pon la luz del living al 30 por ciento", "intent": "luz.brillo", "slots": {"target": "la luz del living", "percent": 30}, "source": "yo", "split": "dev"}
+{"text": "baja la luz", "intent": "luz.brillo", "slots": {"target": "la luz", "by": "down"}, "source": "yo", "split": "test"}
+{"text": "sube la luz de la cocina", "intent": "luz.brillo", "slots": {"target": "la luz de la cocina", "by": "up"}, "source": "yo", "split": "dev"}
+{"text": "luz a la mitad", "intent": "luz.brillo", "slots": {"target": "luz", "percent": 50}, "source": "yo", "split": "test"}
+{"text": "pon la luz cálida", "intent": "luz.tono", "slots": {"target": "la luz", "tone": "calida"}, "source": "yo", "split": "dev"}
+{"text": "luz fría en el living", "intent": "luz.tono", "slots": {"target": "luz en el living", "tone": "fria"}, "source": "yo", "split": "test"}
+{"text": "prende la tele", "intent": "tv.encender", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "enciende la televisión", "intent": "tv.encender", "slots": {}, "source": "yo", "split": "test"}
+{"text": "apaga la tele", "intent": "tv.apagar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "apaga el televisor", "intent": "tv.apagar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "sube el volumen de la tele", "intent": "tv.volumen", "slots": {"by": "up"}, "source": "yo", "split": "dev"}
+{"text": "baja la tele", "intent": "tv.volumen", "slots": {"by": "down"}, "source": "yo", "split": "test"}
+{"text": "silencia la tele", "intent": "tv.silencio", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿qué temperatura hace afuera?", "intent": "clima", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿cuántos grados hay?", "intent": "clima", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿qué temperatura hay en la pieza?", "intent": "clima", "slots": {"inside": true}, "source": "yo", "split": "dev"}
+{"text": "¿hace frío afuera?", "intent": "clima", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿cómo está el tiempo?", "intent": "clima", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿Cómo se llama el escritor de Los Simpsons?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Cuéntame de tu día", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Estás ahí?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "¿Todo bien por ahí", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
 {"text": "conversemos", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "Can Do Lea to Me", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
 {"text": "¿Cuánto cuesta App hoy día?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}

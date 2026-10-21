@@ -27,6 +27,13 @@ type VigiaAudioModule = {
   musicSpeaker(): Promise<string | null>;
   musicAccess(): Promise<boolean>;
   openNotificationAccess(): void;
+  netUdp(host: string, port: number, payload: string, waitMs: number): Promise<{from: string; payload: string}[]>;
+  netWakeOnLan(mac: string): Promise<boolean>;
+  netWs(url: string, messages: string[], waitMs: number, insecureLocal: boolean): Promise<string[]>;
+  netHttpGet(url: string, waitMs: number, insecureLocal: boolean): Promise<string | null>;
+  readConfig(): Promise<string | null>;
+  kvGet(key: string): Promise<string | null>;
+  kvSet(key: string, value: string): void;
   ringStatus(): Promise<{ringing: boolean; message: string | null}>;
   remindersAdd(text: string, at: number, kind: string): Promise<{id: number; text: string; at: number; kind: string}>;
   remindersList(): Promise<{id: number; text: string; at: number; kind: string}[]>;

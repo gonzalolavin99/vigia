@@ -67,6 +67,10 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 - [ ] Esquema de herramientas generado desde las skills
 - [ ] Modo charla con historial corto
 
+### Fase 6
+
+- [ ] Menú para agregar, nombrar y agrupar dispositivos (luces, zonas, grupos) desde la app; escribe el mismo `home.json` (pedido de Gonzalo, 22 oct)
+
 ## Definición de terminado
 
 Una tarea está lista cuando tiene tests de la lógica en TypeScript, se probó en el teléfono real con pantalla apagada, y el doc o ADR afectado quedó actualizado.

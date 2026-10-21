@@ -1,3 +1,5 @@
+import {DeviceError} from '../devices/types';
+import {describeLights, Home} from '../devices/home';
 import {Intent, parseIntent} from '../nlu/intents';
 import {normalize} from '../nlu/normalize';
 import {addDays, defaultDate, isoDate, parseWhen} from '../nlu/when';
@@ -34,7 +36,7 @@ export interface MusicPlayer {
   speaker(): Promise<string | null>;
 }
 
-export const NOT_UNDERSTOOD = 'No te entendí bien. Puedo decirte la hora o la fecha, poner temporizadores y recordatorios.';
+export const NOT_UNDERSTOOD = 'No te entendí bien. Puedo decirte la hora, la fecha y el clima, poner temporizadores, recordatorios y música, y manejar las luces y la tele.';
 const MAX_READ = 5;
 const YES = /^(si|sí|claro|dale|ya|ok|okay|bueno|correcto|confirmo|hazlo|borralo|borralos)\b/;
 const NO = /^(no|nada|cancela|olvidalo|dejalo|mejor no)\b/;
@@ -49,6 +51,8 @@ export class Assistant {
     private readonly store: ReminderStore,
     private readonly now: () => Date = () => new Date(),
     private readonly music: MusicPlayer | null = null,
+    /** La casa (luces, TV, clima) se carga de home.json; null si aún no hay configuración. */
+    private readonly home: () => Promise<Home | null> = async () => null,
   ) {}
 
   async resolve(text: string): Promise<Reply> {
@@ -122,6 +126,21 @@ export class Assistant {
       case 'volumen.fijar':
         return this.handleMusic(intent, slots);
 
+      case 'luz.encender':
+      case 'luz.apagar':
+      case 'luz.brillo':
+      case 'luz.tono':
+        return this.handleLights(intent, slots);
+
+      case 'tv.encender':
+      case 'tv.apagar':
+      case 'tv.volumen':
+      case 'tv.silencio':
+        return this.handleTv(intent, slots);
+
+      case 'clima':
+        return this.handleWeather(slots.inside === true);
+
       default:
         return {say: NOT_UNDERSTOOD};
     }
@@ -157,6 +176,75 @@ export class Assistant {
       case 'volumen.bajar': return {say: `Volumen al ${await music.volume({by: 'down'})} %.`};
       default: return {say: `Volumen al ${await music.volume({percent: slots.percent ?? 50})} %.`};
     }
+  }
+
+  private async handleLights(intent: Intent['intent'], slots: Intent['slots']): Promise<Reply> {
+    const home = await this.home();
+    if (!home || !home.allLights.length) return {say: 'Todavía no tengo luces configuradas.'};
+    const devices = home.resolveLights(slots.target);
+    if (devices === null) return {say: `No conozco ${slots.target ? `"${slots.target}"` : 'esa luz'}.`};
+    if (!devices.length) {
+      const options = home.allLights.map(d => d.name.replace(/^luz\s+/, '')).join(', ');
+      return this.ask(`¿Cuál luz? Tengo ${options}.`, async answer => {
+        if (!home.resolveLights(answer)) return null;
+        return this.handleLights(intent, {...slots, target: answer});
+      });
+    }
+    const what = describeLights(devices, home.allLights);
+    let outcome;
+    let done: string;
+    if (intent === 'luz.encender' || intent === 'luz.apagar') {
+      const on = intent === 'luz.encender';
+      outcome = await home.setLights(devices, (a, d) => a.setPower(d, on));
+      done = `Listo, ${on ? 'prendí' : 'apagué'} ${what}.`;
+    } else if (intent === 'luz.tono') {
+      const kelvin = {calida: 2700, neutra: 4000, fria: 6500}[slots.tone ?? 'neutra'];
+      outcome = await home.setLights(devices, (a, d) => a.setWhite(d, kelvin));
+      done = `Listo, luz ${slots.tone === 'fria' ? 'fría' : slots.tone === 'calida' ? 'cálida' : 'neutra'} en ${what}.`;
+    } else {
+      let percent = slots.percent;
+      if (percent === undefined) {
+        // Subir o bajar: 30 puntos desde el brillo actual de la primera luz.
+        const current = await brightnessOf(home, devices[0]);
+        percent = Math.min(100, Math.max(10, (current ?? 60) + (slots.by === 'down' ? -30 : 30)));
+      }
+      const target = percent;
+      outcome = await home.setLights(devices, (a, d) => a.setBrightness(d, target));
+      done = `Listo, ${what} al ${target} %.`;
+    }
+    if (!outcome.failed.length) return {say: done};
+    const failedNames = outcome.failed.map(e => e.device.name).join(', ');
+    return {say: outcome.done.length ? `${done.replace(/\.$/, '')}, pero no pude con ${failedNames}.` : `No pude comunicarme con ${failedNames}. ¿Está conectada a la red?`};
+  }
+
+  private async handleTv(intent: Intent['intent'], slots: Intent['slots']): Promise<Reply> {
+    const home = await this.home();
+    if (!home?.television) return {say: 'Todavía no tengo la tele configurada.'};
+    try {
+      if (intent === 'tv.encender') { await home.tvPower(true); return {say: 'Listo, prendí la tele.'}; }
+      if (intent === 'tv.apagar') { await home.tvPower(false); return {say: 'Listo, apagué la tele.'}; }
+      if (intent === 'tv.silencio') { await home.tvKey('KEY_MUTE'); return {say: ''}; }
+      await home.tvKey(slots.by === 'down' ? 'KEY_VOLDOWN' : 'KEY_VOLUP', 3);
+      return {say: ''};
+    } catch (error) {
+      if (error instanceof DeviceError && error.reason === 'unauthorized') return {say: 'La tele no me dio permiso. Acepta el aviso de Vigía en la pantalla de la tele y vuelve a pedírmelo.'};
+      if (error instanceof DeviceError && error.reason === 'unreachable') {
+        return {say: intent === 'tv.encender'
+          ? 'No logré encender la tele. Revisa que esté activado "Encender con el móvil" en sus ajustes de red.'
+          : 'La tele no responde; parece estar apagada.'};
+      }
+      return {say: 'No pude comunicarme con la tele.'};
+    }
+  }
+
+  private async handleWeather(inside: boolean): Promise<Reply> {
+    const home = await this.home();
+    const weather = home ? await home.weather.current() : null;
+    if (!weather) return {say: 'No pude obtener el clima. ¿Hay internet?'};
+    const degrees = Math.round(weather.temperature);
+    const state = weather.description ? ` y está ${weather.description}` : '';
+    const prefix = inside ? 'No tengo un sensor adentro. ' : '';
+    return {say: `${prefix}Afuera hay ${degrees} ${Math.abs(degrees) === 1 ? 'grado' : 'grados'}${state}.`};
   }
 
   private async createReminder(text: string, date: string | undefined, time: string | undefined): Promise<Reply> {
@@ -261,3 +349,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const isoDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const hhmm = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+async function brightnessOf(home: Home, device: Parameters<Home['setLights']>[0][number]): Promise<number | null> {
+  let value: number | null = null;
+  await home.setLights([device], async (adapter, d) => { value = await adapter.brightness(d); });
+  return value;
+}

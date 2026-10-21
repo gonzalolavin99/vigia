@@ -12,6 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import cl.vigia.app.audio.VoiceService
 import cl.vigia.app.boot.VigiaPrefs
 import cl.vigia.app.music.Music
+import cl.vigia.app.net.Net
 import cl.vigia.app.reminders.Reminder
 import cl.vigia.app.reminders.Reminders
 import cl.vigia.app.reminders.Ringer
@@ -107,6 +108,28 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
   @ReactMethod fun openNotificationAccess() {
     context.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
   }
+  // Red para los adaptadores de dispositivos en TypeScript (ADR-020). Todo en un hilo aparte: puede esperar respuestas.
+  private fun background(promise: Promise, code: String, block: () -> Any?) {
+    kotlin.concurrent.thread(name = "VigiaNet") {
+      try { promise.resolve(block()) } catch (e: Exception) { promise.reject(code, e.message ?: e.javaClass.simpleName, e) }
+    }
+  }
+  @ReactMethod fun netUdp(host: String, port: Double, payload: String, waitMs: Double, promise: Promise) = background(promise, "NET_UDP") {
+    Arguments.createArray().apply {
+      Net.udp(host, port.toInt(), payload, waitMs.toInt()).forEach { r -> pushMap(Arguments.createMap().apply { putString("from", r.from); putString("payload", r.payload) }) }
+    }
+  }
+  @ReactMethod fun netWakeOnLan(mac: String, promise: Promise) = background(promise, "NET_WOL") { Net.wakeOnLan(mac); true }
+  @ReactMethod fun netWs(url: String, messages: com.facebook.react.bridge.ReadableArray, waitMs: Double, insecureLocal: Boolean, promise: Promise) = background(promise, "NET_WS") {
+    val list = (0 until messages.size()).map { messages.getString(it) ?: "" }
+    Arguments.createArray().apply { Net.wsExchange(url, list, waitMs.toLong(), insecureLocal).forEach { pushString(it) } }
+  }
+  @ReactMethod fun netHttpGet(url: String, waitMs: Double, insecureLocal: Boolean, promise: Promise) = background(promise, "NET_HTTP") { Net.httpGet(url, waitMs.toLong(), insecureLocal) }
+  @ReactMethod fun readConfig(promise: Promise) = background(promise, "CONFIG") { Net.readConfig(context) }
+  // Valores pequeños que TS necesita guardar (por ejemplo, el token de la TV).
+  @ReactMethod fun kvGet(key: String, promise: Promise) { promise.resolve(context.getSharedPreferences("vigia-kv", 0).getString(key, null)) }
+  @ReactMethod fun kvSet(key: String, value: String) { context.getSharedPreferences("vigia-kv", 0).edit().putString(key, value).apply() }
+
   @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
   @ReactMethod fun endTurn() { Turn.end(context) }
 

@@ -141,7 +141,7 @@ describe('recordatorios', () => {
 
 it('responde que no entendió lo que está fuera de alcance', async () => {
   const {assistant} = setup();
-  await expect(assistant.resolve('prende la luz del living')).resolves.toEqual({say: NOT_UNDERSTOOD});
+  await expect(assistant.resolve('conversemos un rato')).resolves.toEqual({say: NOT_UNDERSTOOD});
 });
 
 describe('música', () => {

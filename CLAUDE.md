@@ -21,6 +21,7 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 ## Comandos
 - npm run doctor   # comprueba PC, teléfono, Claude, Ollama, WiZ y TV
 - npm run logs     # copia los registros de Vigía del teléfono a eval/phase0/device-logs/
+- npm run push-config  # copia dispositivos y ubicación de vigia.local.json al teléfono (home.json)
 - npm test
 - npm run android
 - npm run lint

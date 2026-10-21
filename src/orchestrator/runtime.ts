@@ -1,6 +1,10 @@
 import {onAudioEvent, VigiaAudio} from '../native/vigiaAudio';
 import {Assistant, MusicPlayer, Reminder, ReminderStore} from './assistant';
 import {Orchestrator} from './machine';
+import {Home} from '../devices/home';
+import {SamsungAdapter} from '../devices/samsung';
+import {HomeConfig, Net} from '../devices/types';
+import {WizAdapter} from '../devices/wiz';
 import {recordHistory} from './history';
 
 // Recordatorios guardados en Android (SQLite + AlarmManager, ADR-009).
@@ -19,7 +23,28 @@ const nativeMusic: MusicPlayer = {
   nowPlaying: () => VigiaAudio.musicNowPlaying(),
   speaker: () => VigiaAudio.musicSpeaker(),
 };
-export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic);
+// Red de Android para los adaptadores de dispositivos (ADR-020).
+const nativeNet: Net = {
+  udp: (host, port, payload, waitMs) => VigiaAudio.netUdp(host, port, payload, waitMs),
+  wakeOnLan: async mac => { await VigiaAudio.netWakeOnLan(mac); },
+  ws: (url, messages, waitMs, insecureLocal) => VigiaAudio.netWs(url, messages, waitMs, insecureLocal),
+  httpGet: (url, waitMs) => VigiaAudio.netHttpGet(url, waitMs, true),
+  kvGet: key => VigiaAudio.kvGet(key),
+  kvSet: (key, value) => VigiaAudio.kvSet(key, value),
+};
+
+// La casa se arma una vez desde files/config/home.json (npm run push-config); si no existe, no hay dispositivos.
+let homePromise: Promise<Home | null> | null = null;
+export function loadHome(): Promise<Home | null> {
+  homePromise ??= VigiaAudio.readConfig().then(text => {
+    if (!text) return null;
+    const config = JSON.parse(text) as HomeConfig;
+    return new Home(config, new WizAdapter(nativeNet), new SamsungAdapter(nativeNet));
+  }).catch(() => { homePromise = null; return null; });
+  return homePromise;
+}
+
+export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic, loadHome);
 
 // Una sola instancia por proceso. Se crea al cargar el bundle (index.js), con o sin la app abierta:
 // el servicio arranca el runtime de JS aunque no haya pantalla (por ejemplo, tras reiniciar).

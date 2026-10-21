@@ -15,6 +15,13 @@ export type Slots = {
   all?: boolean;
   /** Qué poner en Apple Music ("queen", "bohemian rhapsody"). */
   query?: string;
+  /** A qué dispositivo se refiere, tal como se dijo ("la luz de la cocina", "todo"); lo resuelve la casa (src/devices). */
+  target?: string;
+  /** Subir o bajar sin número (brillo, volumen de la TV). */
+  by?: 'up' | 'down';
+  tone?: 'calida' | 'fria' | 'neutra';
+  /** Pregunta por la temperatura adentro (no hay sensor; se responde la exterior, ADR-017). */
+  inside?: boolean;
   /** Si la búsqueda es de un artista, una canción o un álbum (se le pasa a Apple Music). */
   focus?: 'artist' | 'song' | 'album';
   /** Artista de una canción pedida como "la canción X de Y". */
@@ -29,6 +36,9 @@ export type IntentName =
   | 'recordatorio.crear' | 'recordatorio.listar' | 'recordatorio.borrar'
   | 'musica.reproducir' | 'musica.pausar' | 'musica.continuar' | 'musica.siguiente' | 'musica.anterior' | 'musica.que_suena'
   | 'volumen.subir' | 'volumen.bajar' | 'volumen.fijar'
+  | 'luz.encender' | 'luz.apagar' | 'luz.brillo' | 'luz.tono'
+  | 'tv.encender' | 'tv.apagar' | 'tv.volumen' | 'tv.silencio'
+  | 'clima'
   | 'desconocido';
 
 const REMIND = /\b(recuerdame|recordarme|me recuerdas|ponme un recordatorio|pon un recordatorio|crea un recordatorio|avisame que|despiertame|despertame)\b/;
@@ -96,6 +106,10 @@ export function parseIntent(raw: string, now: Date): Intent {
     }
     return {intent: 'recordatorio.crear', slots};
   }
+
+  // Dispositivos y clima (fase 4). Antes que la música: "pon la luz cálida" y "sube el volumen de la tele" no son música.
+  const device = parseDevices(text);
+  if (device) return device;
 
   // Música y volumen (fase 3, ADR-008). Van después de temporizadores y recordatorios: "pon una alarma" no es música.
   const music = parseMusic(text);
@@ -183,6 +197,48 @@ function parseMusic(text: string): Intent | null {
     if (artist) return {intent: 'musica.reproducir', slots: {query: artist[3], focus: 'artist'}};
     const query = `${rest} `.replace(QUERY_LEADING, '').trim();
     return {intent: 'musica.reproducir', slots: query ? {query} : {}};
+  }
+  return null;
+}
+
+const TV = /\b(tele|tv|television|televisor|tevé)\b/;
+const LIGHT = /\b(luz|luces|lampara|lamparas|ampolleta|ampolletas)\b/;
+const TURN_ON = /\b(prende|prender|prendeme|enciende|encender|enciendeme)\b/;
+const TURN_OFF = /\b(apaga|apagar|apagame)\b/;
+
+/** Luces, TV y clima: "prende la luz del living", "apaga todo", "luz al 30", "apaga la tele", "¿cuántos grados hay?". */
+function parseDevices(text: string): Intent | null {
+  if (TV.test(text)) {
+    if (/\b(silencia|silenciar|mute|quita el sonido|sin sonido)\b/.test(text)) return {intent: 'tv.silencio', slots: {}};
+    if (/\b(sube|subele|subir)\b/.test(text)) return {intent: 'tv.volumen', slots: {by: 'up'}};
+    if (/\b(baja|bajale|bajar)\b/.test(text)) return {intent: 'tv.volumen', slots: {by: 'down'}};
+    if (TURN_OFF.test(text)) return {intent: 'tv.apagar', slots: {}};
+    if (TURN_ON.test(text) || /\bpon\b/.test(text)) return {intent: 'tv.encender', slots: {}};
+  }
+  if (/\b(temperatura|grados|que tiempo|el tiempo|clima|hace (frio|calor)|va a llover|esta lloviendo)\b/.test(text)) {
+    return {intent: 'clima', slots: /\b(pieza|adentro|dentro|living|cocina|dormitorio|aca dentro)\b/.test(text) ? {inside: true} : {}};
+  }
+  const verb = text.match(TURN_ON) ?? text.match(TURN_OFF);
+  const after = (m: RegExpMatchArray | null) => (m ? text.slice(m.index! + m[0].length) : text).trim();
+  if (LIGHT.test(text)) {
+    const target = after(verb ?? text.match(/\b(pon|ponme|sube|subele|baja|bajale|atenua|deja)\b/))
+      .replace(/\s+(al|a|en)\s+(\d+|la mitad|el maximo|el minimo)(\s+por\s*ciento)?$/, '')
+      .replace(/\s+(calida|calido|amarilla|fria|frio|blanca|neutra)\b/, '')
+      .trim();
+    const number = text.match(/\b(\d{1,3})\b/);
+    const percent = number ? Math.min(100, Number(number[1])) : /\bmitad\b/.test(text) ? 50 : /\bmaximo\b/.test(text) ? 100 : /\bminimo\b/.test(text) ? 10 : undefined;
+    if (percent !== undefined) return {intent: 'luz.brillo', slots: {target, percent}};
+    const tone = /\b(calida|calido|amarilla)\b/.test(text) ? 'calida' : /\b(fria|frio|blanca)\b/.test(text) ? 'fria' : /\bneutra\b/.test(text) ? 'neutra' : undefined;
+    if (tone) return {intent: 'luz.tono', slots: {target, tone}};
+    if (TURN_OFF.test(text)) return {intent: 'luz.apagar', slots: {target}};
+    if (TURN_ON.test(text)) return {intent: 'luz.encender', slots: {target}};
+    if (/\b(sube|subele|aumenta|mas luz)\b/.test(text)) return {intent: 'luz.brillo', slots: {target, by: 'up'}};
+    if (/\b(baja|bajale|atenua|menos luz)\b/.test(text)) return {intent: 'luz.brillo', slots: {target, by: 'down'}};
+  }
+  // "apaga todo", "apaga la casa", "prende la cocina": encender o apagar sin decir "luz" (no la música ni la alarma).
+  if (verb && !/\b(musica|cancion|alarma|temporizador|timer)\b/.test(text)) {
+    const target = after(verb);
+    if (target) return {intent: TURN_OFF.test(text) ? 'luz.apagar' : 'luz.encender', slots: {target}};
   }
   return null;
 }
