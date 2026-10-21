@@ -18,6 +18,7 @@
       android:usesCleartextTraffic="${usesCleartextTraffic}"
       android:supportsRtl="true">
       <service android:name=".audio.VoiceService" android:exported="false" android:foregroundServiceType="microphone" />
+      <receiver android:name=".reminders.Reminders$ReminderReceiver" android:exported="false" />
       <receiver android:name=".boot.BootReceiver" android:exported="true">
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED" />

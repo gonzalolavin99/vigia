@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import cl.vigia.app.audio.VoiceService
+import cl.vigia.app.reminders.Reminders
 
 // Arranque al encender (ADR-003). En Android 11 un servicio de micrófono iniciado desde segundo plano
 // graba silencio; por eso el receptor abre una actividad transparente sobre el bloqueo, que inicia el
@@ -32,6 +33,8 @@ object VigiaPrefs {
 class BootReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+    // Las alarmas se pierden al apagar: se reprograman siempre, aunque la escucha esté detenida (ADR-009).
+    Reminders.rescheduleAll(context)
     // Solo si la escucha estaba activa cuando se apagó: "Detener escucha" desactiva el arranque.
     if (!VigiaPrefs.listening(context)) return
     Log.i(TAG, "t=${System.currentTimeMillis()} boot_completed starting")

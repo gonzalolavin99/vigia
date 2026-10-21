@@ -11,6 +11,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import cl.vigia.app.audio.VoiceService
 import cl.vigia.app.boot.VigiaPrefs
+import cl.vigia.app.reminders.Reminder
+import cl.vigia.app.reminders.Reminders
 import cl.vigia.app.voice.Speaker
 import cl.vigia.app.voice.Turn
 
@@ -49,6 +51,24 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
     promise.resolve(Arguments.createMap().apply { putArray("voices", list); putString("current", Speaker.currentVoice()) })
   }
   @ReactMethod fun setVoice(name: String) { Speaker.setVoice(context, name) }
+
+  // Recordatorios, alarmas y temporizadores (ADR-009), usados por src/native/reminderStore.ts.
+  @ReactMethod fun remindersAdd(text: String, at: Double, kind: String, promise: Promise) {
+    try { promise.resolve(toMap(Reminders.add(context, text, at.toLong(), kind))) } catch (e: Exception) { promise.reject("REMINDER_ADD", e) }
+  }
+  @ReactMethod fun remindersList(promise: Promise) {
+    try {
+      val list = Arguments.createArray()
+      Reminders.list(context).forEach { list.pushMap(toMap(it)) }
+      promise.resolve(list)
+    } catch (e: Exception) { promise.reject("REMINDER_LIST", e) }
+  }
+  @ReactMethod fun remindersRemove(id: Double, promise: Promise) {
+    try { Reminders.remove(context, id.toLong()); promise.resolve(true) } catch (e: Exception) { promise.reject("REMINDER_REMOVE", e) }
+  }
+  private fun toMap(r: Reminder) = Arguments.createMap().apply {
+    putDouble("id", r.id.toDouble()); putString("text", r.text); putDouble("at", r.at.toDouble()); putString("kind", r.kind)
+  }
   @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
   @ReactMethod fun endTurn() { Turn.end(context) }
 

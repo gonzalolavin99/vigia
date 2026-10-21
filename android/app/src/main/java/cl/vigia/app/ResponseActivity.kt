@@ -30,7 +30,7 @@ class ResponseActivity : ReactActivity() {
     else @Suppress("DEPRECATION") window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     super.onCreate(null)
-    handler.postDelayed(close, VISIBLE_MS)
+    handler.postDelayed(close, intent.getLongExtra(EXTRA_VISIBLE_MS, VISIBLE_MS))
   }
 
   override fun onDestroy() {
@@ -40,12 +40,15 @@ class ResponseActivity : ReactActivity() {
 
   companion object {
     private const val EXTRA_TEXT = "text"
+    private const val EXTRA_VISIBLE_MS = "visibleMs"
     private const val VISIBLE_MS = 8000L
 
-    fun show(context: Context, text: String) {
+    // visibleMs: un recordatorio con alarma necesita la pantalla (y el proceso vivo) mientras suena y habla.
+    fun show(context: Context, text: String, visibleMs: Long = VISIBLE_MS) {
       // CLEAR_TOP reemplaza una respuesta anterior que siga en pantalla.
       context.startActivity(Intent(context, ResponseActivity::class.java)
         .putExtra(EXTRA_TEXT, text)
+        .putExtra(EXTRA_VISIBLE_MS, visibleMs)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NO_ANIMATION))
     }
   }

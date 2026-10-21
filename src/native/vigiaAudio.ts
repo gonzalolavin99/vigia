@@ -17,6 +17,9 @@ type VigiaAudioModule = {
   endTurn(): void;
   listVoices(): Promise<{voices: Voice[]; current: string | null}>;
   setVoice(name: string): void;
+  remindersAdd(text: string, at: number, kind: string): Promise<{id: number; text: string; at: number; kind: string}>;
+  remindersList(): Promise<{id: number; text: string; at: number; kind: string}[]>;
+  remindersRemove(id: number): Promise<boolean>;
 };
 
 export type Voice = {name: string; locale: string; network: boolean};
