@@ -19,6 +19,16 @@
       android:supportsRtl="true">
       <service android:name=".audio.VoiceService" android:exported="false" android:foregroundServiceType="microphone" />
       <receiver android:name=".reminders.Reminders$ReminderReceiver" android:exported="false" />
+      <!-- Solo para obtener la sesión de Apple Music (fase 3, ADR-008); no lee notificaciones. -->
+      <service
+        android:name=".music.MediaListener"
+        android:exported="true"
+        android:label="Vigía (control de música)"
+        android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+        <intent-filter>
+          <action android:name="android.service.notification.NotificationListenerService" />
+        </intent-filter>
+      </service>
       <receiver android:name=".boot.BootReceiver" android:exported="true">
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED" />

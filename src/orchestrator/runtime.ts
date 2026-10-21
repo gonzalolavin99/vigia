@@ -1,5 +1,5 @@
 import {onAudioEvent, VigiaAudio} from '../native/vigiaAudio';
-import {Assistant, Reminder, ReminderStore} from './assistant';
+import {Assistant, MusicPlayer, Reminder, ReminderStore} from './assistant';
 import {Orchestrator} from './machine';
 import {recordHistory} from './history';
 
@@ -9,7 +9,17 @@ const nativeStore: ReminderStore = {
   list: async () => (await VigiaAudio.remindersList()) as Reminder[],
   remove: async id => { await VigiaAudio.remindersRemove(id); },
 };
-export const assistant = new Assistant(nativeStore);
+// Apple Music y volumen en Android (ADR-008).
+const nativeMusic: MusicPlayer = {
+  play: query => VigiaAudio.musicPlay(query ?? null),
+  pause: async () => { await VigiaAudio.musicPause(); },
+  next: async () => { await VigiaAudio.musicNext(); },
+  previous: async () => { await VigiaAudio.musicPrevious(); },
+  volume: change => VigiaAudio.musicVolume(change),
+  nowPlaying: () => VigiaAudio.musicNowPlaying(),
+  speaker: () => VigiaAudio.musicSpeaker(),
+};
+export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic);
 
 // Una sola instancia por proceso. Se crea al cargar el bundle (index.js), con o sin la app abierta:
 // el servicio arranca el runtime de JS aunque no haya pantalla (por ejemplo, tras reiniciar).

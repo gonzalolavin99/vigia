@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import cl.vigia.app.audio.VoiceService
 import cl.vigia.app.boot.VigiaPrefs
+import cl.vigia.app.music.Music
 import cl.vigia.app.reminders.Reminder
 import cl.vigia.app.reminders.Reminders
 import cl.vigia.app.reminders.Ringer
@@ -76,6 +77,36 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
     putDouble("id", r.id.toDouble()); putString("text", r.text); putDouble("at", r.at.toDouble()); putString("kind", r.kind)
   }
   @ReactMethod fun stopAlarm() { Ringer.stop("button") }
+  // Música (fase 3, ADR-008). play puede tardar (abrir Apple Music, esperar que suene): va en un hilo aparte.
+  @ReactMethod fun musicPlay(query: String?, promise: Promise) {
+    kotlin.concurrent.thread(name = "VigiaMusic") {
+      try {
+        val ok = Music.play(context, query)
+        // Si hubo que abrir Apple Music, la esfera vuelve al frente.
+        MainActivity.bringToFront(context)
+        promise.resolve(ok)
+      } catch (e: Exception) { promise.reject("MUSIC_PLAY", e) }
+    }
+  }
+  @ReactMethod fun musicPause(promise: Promise) { Music.pause(context); promise.resolve(true) }
+  @ReactMethod fun musicNext(promise: Promise) { Music.next(context); promise.resolve(true) }
+  @ReactMethod fun musicPrevious(promise: Promise) { Music.previous(context); promise.resolve(true) }
+  /** change: {by: "up"|"down"} o {percent: n}. */
+  @ReactMethod fun musicVolume(change: ReadableMap, promise: Promise) {
+    val by = if (change.hasKey("by")) (if (change.getString("by") == "up") Music.volumeStep() else -Music.volumeStep()) else null
+    val to = if (change.hasKey("percent")) change.getDouble("percent").toInt() else null
+    promise.resolve(Music.volume(context, by, to))
+  }
+  @ReactMethod fun musicNowPlaying(promise: Promise) {
+    val song = Music.nowPlaying(context)
+    promise.resolve(song?.let { (title, artist) -> Arguments.createMap().apply { putString("title", title); putString("artist", artist) } })
+  }
+  @ReactMethod fun musicSpeaker(promise: Promise) { promise.resolve(Music.speaker(context)) }
+  @ReactMethod fun musicAccess(promise: Promise) { promise.resolve(Music.hasAccess(context)) }
+  /** Abre Ajustes en "Acceso a notificaciones" para que Gonzalo active Vigía. */
+  @ReactMethod fun openNotificationAccess() {
+    context.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+  }
   @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
   @ReactMethod fun endTurn() { Turn.end(context) }
 

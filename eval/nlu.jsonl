@@ -82,15 +82,43 @@
 {"text": "borra todos los recordatorios", "intent": "recordatorio.borrar", "slots": {"all": true}, "source": "yo", "split": "test"}
 {"text": "elimina el de pagar la luz", "intent": "recordatorio.borrar", "slots": {"text": "pagar la luz"}, "source": "yo", "split": "dev"}
 {"text": "borra la alarma de las 7", "intent": "recordatorio.borrar", "slots": {"time": "07:00"}, "source": "yo", "split": "test"}
-{"text": "¿Puedes poner música?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
-{"text": "prende la luz del living", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
-{"text": "¿Cómo se llama el escritor de Los Simpsons?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
-{"text": "Cuéntame de tu día", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
-{"text": "¿Estás ahí?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
-{"text": "¿Todo bien por ahí", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
-{"text": "¿qué temperatura hace afuera?", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
-{"text": "conversemos", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
-{"text": "sube el volumen", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿Puedes poner música?", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "pon música", "intent": "musica.reproducir", "slots": {}, "source": "yo", "split": "test"}
+{"text": "Alfred, pon Bohemian Rhapsody", "intent": "musica.reproducir", "slots": {"query": "bohemian rhapsody"}, "source": "yo", "split": "dev"}
+{"text": "pon música de Queen", "intent": "musica.reproducir", "slots": {"query": "queen"}, "source": "yo", "split": "test"}
+{"text": "reproduce Soda Stereo", "intent": "musica.reproducir", "slots": {"query": "soda stereo"}, "source": "yo", "split": "dev"}
+{"text": "quiero escuchar algo de Coldplay", "intent": "musica.reproducir", "slots": {"query": "coldplay"}, "source": "yo", "split": "test"}
+{"text": "ponme la canción Vivir sin aire de Maná", "intent": "musica.reproducir", "slots": {"query": "vivir sin aire de mana"}, "source": "yo", "split": "dev"}
+{"text": "pon el álbum Thriller", "intent": "musica.reproducir", "slots": {"query": "thriller"}, "source": "yo", "split": "test"}
+{"text": "pausa", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "pausa la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "detén la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "para la canción", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "sigue con la música", "intent": "musica.continuar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "continúa", "intent": "musica.continuar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "reanuda la música", "intent": "musica.continuar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "siguiente", "intent": "musica.siguiente", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "siguiente canción", "intent": "musica.siguiente", "slots": {}, "source": "yo", "split": "test"}
+{"text": "salta esta canción", "intent": "musica.siguiente", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "anterior", "intent": "musica.anterior", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "pon la canción anterior", "intent": "musica.anterior", "slots": {}, "source": "yo", "split": "test"}
+{"text": "sube el volumen", "intent": "volumen.subir", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "más fuerte", "intent": "volumen.subir", "slots": {}, "source": "yo", "split": "test"}
+{"text": "baja el volumen", "intent": "volumen.bajar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "más bajito", "intent": "volumen.bajar", "slots": {}, "source": "yo", "split": "test"}
+{"text": "volumen al 50", "intent": "volumen.fijar", "slots": {"percent": 50}, "source": "yo", "split": "dev"}
+{"text": "pon el volumen a la mitad", "intent": "volumen.fijar", "slots": {"percent": 50}, "source": "yo", "split": "test"}
+{"text": "volumen al máximo", "intent": "volumen.fijar", "slots": {"percent": 100}, "source": "yo", "split": "dev"}
+{"text": "¿qué canción es esta?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿qué está sonando?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "test"}
+{"text": "¿cómo se llama esta canción?", "intent": "musica.que_suena", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "prende la luz del living", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "¿Cómo se llama el escritor de Los Simpsons?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "Cuéntame de tu día", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "¿Estás ahí?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Todo bien por ahí", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "¿qué temperatura hace afuera?", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}
+{"text": "conversemos", "intent": "desconocido", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "Can Do Lea to Me", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "test"}
 {"text": "¿Cuánto cuesta App hoy día?", "intent": "desconocido", "slots": {}, "source": "nemo", "split": "dev"}
 {"text": "Hola", "intent": "desconocido", "slots": {}, "source": "yo", "split": "test"}

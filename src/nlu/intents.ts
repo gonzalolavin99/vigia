@@ -13,12 +13,18 @@ export type Slots = {
   label?: string;
   range?: 'all' | 'today' | 'tomorrow' | 'week' | 'month';
   all?: boolean;
+  /** Qué poner en Apple Music ("queen", "bohemian rhapsody"). */
+  query?: string;
+  /** Volumen pedido, 0–100. */
+  percent?: number;
 };
 export type Intent = {intent: IntentName; slots: Slots};
 export type IntentName =
   | 'hora' | 'fecha'
   | 'temporizador.crear' | 'temporizador.consultar' | 'temporizador.cancelar'
   | 'recordatorio.crear' | 'recordatorio.listar' | 'recordatorio.borrar'
+  | 'musica.reproducir' | 'musica.pausar' | 'musica.continuar' | 'musica.siguiente' | 'musica.anterior' | 'musica.que_suena'
+  | 'volumen.subir' | 'volumen.bajar' | 'volumen.fijar'
   | 'desconocido';
 
 const REMIND = /\b(recuerdame|recordarme|me recuerdas|ponme un recordatorio|pon un recordatorio|crea un recordatorio|avisame que|despiertame|despertame)\b/;
@@ -87,6 +93,10 @@ export function parseIntent(raw: string, now: Date): Intent {
     return {intent: 'recordatorio.crear', slots};
   }
 
+  // Música y volumen (fase 3, ADR-008). Van después de temporizadores y recordatorios: "pon una alarma" no es música.
+  const music = parseMusic(text);
+  if (music) return music;
+
   // Fecha: "¿qué día es hoy?", "¿a cuánto estamos mañana?", "¿qué día es el 20 de noviembre?".
   if (/\b(que|en que)\s+(dia|dias|fecha)\b|\ba cuanto estamos\b|\bque dia cae\b/.test(text) || /^(manana|hoy|pasado manana) que dias?$/.test(text)) {
     const when = parseWhen(text, now);
@@ -122,4 +132,42 @@ export function original(raw: string, normalized: string): string {
     if (k === want.length) return words.slice(start, i).join(' ').replace(/^[¿¡"'(]+|[?!.,;:"')]+$/g, '');
   }
   return normalized;
+}
+
+const PLAY_VERB = /\b(pon|ponme|poner|pones|reproduce|reproducir|reproduceme|toca|tocar|escuchar)\b/;
+// Lo que sobra entre el verbo y lo que se quiere escuchar: "pon música de Queen" → "queen".
+const QUERY_LEADING = /^((me|te|puedes|podrias|quiero|un|poco|algo|musica|canciones|cancion|una|el|la|los|las|album|disco|de|del|tema)\s+)+/;
+
+/** Música y volumen: "pon Queen", "pausa", "siguiente", "sube el volumen", "volumen al 50", "¿qué canción es esta?". */
+function parseMusic(text: string): Intent | null {
+  if (/\b(que (cancion|tema) es (esta|esto|este)|que (esta|estas) sonando|que suena|como se llama (esta|la|el) (cancion|tema)|quien canta)\b/.test(text)) {
+    return {intent: 'musica.que_suena', slots: {}};
+  }
+  if (/\bvolumen\b|\bmas (fuerte|alto|bajo|bajito|despacio|suave)\b/.test(text)) {
+    const number = text.match(/\b(\d{1,3})\b/);
+    if (number) return {intent: 'volumen.fijar', slots: {percent: Math.min(100, Number(number[1]))}};
+    if (/\bmitad\b/.test(text)) return {intent: 'volumen.fijar', slots: {percent: 50}};
+    if (/\bmaximo\b/.test(text)) return {intent: 'volumen.fijar', slots: {percent: 100}};
+    if (/\bminimo\b/.test(text)) return {intent: 'volumen.fijar', slots: {percent: 10}};
+    if (/\b(baja|bajar|bajale|disminuye|mas bajo|bajito|despacio|suave)\b/.test(text)) return {intent: 'volumen.bajar', slots: {}};
+    if (/\b(sube|subir|subele|aumenta|mas fuerte|mas alto)\b/.test(text)) return {intent: 'volumen.subir', slots: {}};
+  }
+  if (/^anterior$|\b(cancion anterior|tema anterior|la (cancion )?de antes|vuelve a la (cancion )?anterior)\b/.test(text)) {
+    return {intent: 'musica.anterior', slots: {}};
+  }
+  if (/^siguiente$|\b(siguiente (cancion|tema)|salta(te)? (esta|la|este)|otra cancion|cambia (la|de) cancion|pasa (a la siguiente|la cancion))\b/.test(text)) {
+    return {intent: 'musica.siguiente', slots: {}};
+  }
+  if (/^(pausa|pausar)$/.test(text) || /\b(pausa|pausar|pausale|deten|detener|para|parar|apaga|silencia)\s+(la\s+)?(musica|cancion|tema)\b/.test(text)) {
+    return {intent: 'musica.pausar', slots: {}};
+  }
+  if (/^(sigue|continua|reanuda|play|dale play)$/.test(text) || /\b(sigue|continua|reanuda|vuelve a poner)\s+(con\s+)?(la\s+)?(musica|cancion|tema)\b/.test(text)) {
+    return {intent: 'musica.continuar', slots: {}};
+  }
+  const verb = text.match(PLAY_VERB);
+  if (verb) {
+    const query = `${text.slice(verb.index! + verb[0].length).trim()} `.replace(QUERY_LEADING, '').trim();
+    return {intent: 'musica.reproducir', slots: query ? {query} : {}};
+  }
+  return null;
 }

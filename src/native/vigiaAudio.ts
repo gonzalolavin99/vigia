@@ -18,6 +18,15 @@ type VigiaAudioModule = {
   listVoices(): Promise<{voices: Voice[]; current: string | null}>;
   setVoice(name: string): void;
   stopAlarm(): void;
+  musicPlay(query: string | null): Promise<boolean>;
+  musicPause(): Promise<boolean>;
+  musicNext(): Promise<boolean>;
+  musicPrevious(): Promise<boolean>;
+  musicVolume(change: {by: 'up' | 'down'} | {percent: number}): Promise<number>;
+  musicNowPlaying(): Promise<{title: string; artist: string} | null>;
+  musicSpeaker(): Promise<string | null>;
+  musicAccess(): Promise<boolean>;
+  openNotificationAccess(): void;
   ringStatus(): Promise<{ringing: boolean; message: string | null}>;
   remindersAdd(text: string, at: number, kind: string): Promise<{id: number; text: string; at: number; kind: string}>;
   remindersList(): Promise<{id: number; text: string; at: number; kind: string}[]>;

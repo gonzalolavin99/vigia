@@ -18,6 +18,20 @@ export interface ReminderStore {
   remove(id: number): Promise<void>;
 }
 
+/** Apple Music y volumen en el teléfono (ADR-008); el audio sale por el Echo si está conectado por Bluetooth. */
+export interface MusicPlayer {
+  /** Con query busca y reproduce; sin query reanuda. false si Apple Music no respondió. */
+  play(query?: string): Promise<boolean>;
+  pause(): Promise<void>;
+  next(): Promise<void>;
+  previous(): Promise<void>;
+  /** Devuelve el volumen resultante, 0–100. */
+  volume(change: {by: 'up' | 'down'} | {percent: number}): Promise<number>;
+  nowPlaying(): Promise<{title: string; artist: string} | null>;
+  /** Nombre del parlante Bluetooth conectado, o null si suena en el teléfono. */
+  speaker(): Promise<string | null>;
+}
+
 export const NOT_UNDERSTOOD = 'No te entendí bien. Puedo decirte la hora o la fecha, poner temporizadores y recordatorios.';
 const MAX_READ = 5;
 const YES = /^(si|sí|claro|dale|ya|ok|okay|bueno|correcto|confirmo|hazlo|borralo|borralos)\b/;
@@ -29,7 +43,11 @@ type FollowUp = (text: string) => Promise<Reply | null>;
 export class Assistant {
   private pending: FollowUp | null = null;
 
-  constructor(private readonly store: ReminderStore, private readonly now: () => Date = () => new Date()) {}
+  constructor(
+    private readonly store: ReminderStore,
+    private readonly now: () => Date = () => new Date(),
+    private readonly music: MusicPlayer | null = null,
+  ) {}
 
   async resolve(text: string): Promise<Reply> {
     const followUp = this.pending;
@@ -91,8 +109,47 @@ export class Assistant {
       case 'recordatorio.borrar':
         return this.deleteReminders(slots);
 
+      case 'musica.reproducir':
+      case 'musica.pausar':
+      case 'musica.continuar':
+      case 'musica.siguiente':
+      case 'musica.anterior':
+      case 'musica.que_suena':
+      case 'volumen.subir':
+      case 'volumen.bajar':
+      case 'volumen.fijar':
+        return this.handleMusic(intent, slots);
+
       default:
         return {say: NOT_UNDERSTOOD};
+    }
+  }
+
+  // Pausa, sigue, siguiente y anterior actúan sin hablar para no interrumpir la música (say vacío).
+  private async handleMusic(intent: Intent['intent'], slots: Intent['slots']): Promise<Reply> {
+    const music = this.music;
+    if (!music) return {say: 'La música todavía no está disponible.'};
+    switch (intent) {
+      case 'musica.reproducir': {
+        const ok = await music.play(slots.query);
+        if (!ok) return {say: slots.query ? `No pude poner ${slots.query} en Apple Music.` : 'No pude retomar la música en Apple Music.'};
+        const where = (await music.speaker()) ? '' : ' El Echo no está conectado, así que suena en el teléfono.';
+        return {say: slots.query ? `Pongo ${slots.query}.${where}` : where.trim()};
+      }
+      case 'musica.pausar': await music.pause(); return {say: ''};
+      case 'musica.continuar': {
+        const ok = await music.play();
+        return {say: ok ? '' : 'No pude retomar la música en Apple Music.'};
+      }
+      case 'musica.siguiente': await music.next(); return {say: ''};
+      case 'musica.anterior': await music.previous(); return {say: ''};
+      case 'musica.que_suena': {
+        const song = await music.nowPlaying();
+        return {say: song ? `Es ${song.title}, de ${song.artist}.` : 'No está sonando nada en Apple Music.'};
+      }
+      case 'volumen.subir': return {say: `Volumen al ${await music.volume({by: 'up'})} %.`};
+      case 'volumen.bajar': return {say: `Volumen al ${await music.volume({by: 'down'})} %.`};
+      default: return {say: `Volumen al ${await music.volume({percent: slots.percent ?? 50})} %.`};
     }
   }
 

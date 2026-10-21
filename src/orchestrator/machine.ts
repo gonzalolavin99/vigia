@@ -76,6 +76,8 @@ export class Orchestrator {
   }
 
   private async say(reply: Reply): Promise<void> {
+    // Respuesta vacía: la acción ya se hizo y no hay nada que decir (por ejemplo, "pausa").
+    if (!reply.say) { this.finish(); return; }
     this.set('speaking', reply.say);
     this.deps.show(reply.say);
     try {

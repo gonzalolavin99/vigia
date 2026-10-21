@@ -17,6 +17,16 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
   const [voices, setVoices] = useState<Voice[]>([]);
   const [voice, setVoice] = useState<string | null>(null);
   const [log, setLog] = useState<LogLine[]>([]);
+  const [musicAccess, setMusicAccess] = useState<boolean | null>(null);
+  const [speaker, setSpeaker] = useState<string | null>(null);
+
+  // Se revisa cada vez que se vuelve a la pestaña (por ejemplo, después de activar el acceso en Ajustes de Android).
+  useEffect(() => {
+    const check = () => { VigiaAudio.musicAccess().then(setMusicAccess); VigiaAudio.musicSpeaker().then(setSpeaker); };
+    check();
+    const timer = setInterval(check, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const add = (kind: LogLine['kind'], text: string, at?: number) => setLog(prev =>
@@ -62,6 +72,20 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.cardTitle}>Música</Text>
+        <Text style={styles.status}>Apple Music: {musicAccess === null ? '…' : musicAccess ? 'conectado ✓' : 'falta permiso'}</Text>
+        <Text style={styles.status}>Parlante: {speaker ? `${speaker} ✓` : 'teléfono (Echo sin conectar)'}</Text>
+        {musicAccess === false ? (
+          <>
+            <Text style={styles.note}>Vigía necesita "Acceso a notificaciones" solo para controlar la sesión de Apple Music. No lee tus notificaciones.</Text>
+            <Pressable accessibilityRole="button" onPress={() => VigiaAudio.openNotificationAccess()} style={styles.button}>
+              <Text style={styles.buttonText}>Dar acceso</Text>
+            </Pressable>
+          </>
+        ) : null}
+      </View>
+
+      <View style={styles.card}>
         <Text style={styles.cardTitle}>Voz</Text>
         {voices.length === 0 ? <Text style={styles.note}>Cargando voces…</Text> : voices.map(v =>
           <Pressable key={v.name} onPress={() => tryVoice(v.name)} style={[styles.voice, v.name === voice && styles.voiceOn]}>
@@ -96,6 +120,7 @@ const styles = StyleSheet.create({
   buttonStop: {backgroundColor: '#b45353'},
   buttonText: {color: colors.bg, fontSize: 16, fontWeight: '700'},
   note: {color: colors.faint, fontSize: 13, marginTop: 8},
+  status: {color: colors.text, fontSize: 15, marginTop: 4},
   voice: {backgroundColor: colors.bg, borderRadius: 10, padding: 12, marginTop: 6},
   voiceOn: {borderWidth: 1, borderColor: colors.accent},
   voiceText: {color: colors.text, fontSize: 13},

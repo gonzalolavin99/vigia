@@ -143,3 +143,53 @@ it('responde que no entendió lo que está fuera de alcance', async () => {
   const {assistant} = setup();
   await expect(assistant.resolve('prende la luz del living')).resolves.toEqual({say: NOT_UNDERSTOOD});
 });
+
+describe('música', () => {
+  function withMusic(speaker: string | null = 'Echo Pop-WXJ') {
+    const calls: string[] = [];
+    let volume = 40;
+    const music = {
+      play: async (q?: string) => { calls.push(`play:${q ?? ''}`); return true; },
+      pause: async () => { calls.push('pause'); },
+      next: async () => { calls.push('next'); },
+      previous: async () => { calls.push('previous'); },
+      volume: async (c: {by: 'up' | 'down'} | {percent: number}) => {
+        volume = 'percent' in c ? c.percent : volume + (c.by === 'up' ? 10 : -10);
+        return volume;
+      },
+      nowPlaying: async () => ({title: 'Bohemian Rhapsody', artist: 'Queen'}),
+      speaker: async () => speaker,
+    };
+    return {calls, assistant: new Assistant(new MemoryStore(), () => NOW, music)};
+  }
+
+  it('pone lo pedido y lo confirma', async () => {
+    const {calls, assistant} = withMusic();
+    await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Pongo queen.'});
+    expect(calls).toEqual(['play:queen']);
+  });
+
+  it('avisa si el Echo no está conectado', async () => {
+    const {assistant} = withMusic(null);
+    const reply = await assistant.resolve('pon Bohemian Rhapsody');
+    expect(reply.say).toBe('Pongo bohemian rhapsody. El Echo no está conectado, así que suena en el teléfono.');
+  });
+
+  it.each([['pausa', 'pause'], ['siguiente', 'next'], ['anterior', 'previous'], ['sigue con la música', 'play:']])(
+    '«%s» actúa sin hablar', async (text, call) => {
+      const {calls, assistant} = withMusic();
+      await expect(assistant.resolve(text)).resolves.toEqual({say: ''});
+      expect(calls).toEqual([call]);
+    });
+
+  it('ajusta y dice el volumen', async () => {
+    const {assistant} = withMusic();
+    await expect(assistant.resolve('sube el volumen')).resolves.toEqual({say: 'Volumen al 50 %.'});
+    await expect(assistant.resolve('volumen a la mitad')).resolves.toEqual({say: 'Volumen al 50 %.'});
+  });
+
+  it('dice qué canción suena', async () => {
+    const {assistant} = withMusic();
+    await expect(assistant.resolve('¿qué canción es esta?')).resolves.toEqual({say: 'Es Bohemian Rhapsody, de Queen.'});
+  });
+});

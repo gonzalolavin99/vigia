@@ -89,3 +89,17 @@ describe('Orchestrator', () => {
     expect(states.filter(s => s === 'resolving')).toHaveLength(1);
   });
 });
+
+it('una respuesta vacía cierra el turno sin hablar ni mostrar', async () => {
+  const calls: string[] = [];
+  const orchestrator = new Orchestrator({
+    resolve: async () => ({say: ''}),
+    speak: async () => { calls.push('speak'); },
+    show: () => calls.push('show'),
+    listenAgain: () => calls.push('listenAgain'),
+    endTurn: () => calls.push('endTurn'),
+  });
+  await orchestrator.transcript('pausa');
+  expect(calls).toEqual(['endTurn']);
+  expect(orchestrator.state).toBe('idle');
+});
