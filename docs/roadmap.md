@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 20 oct 2026:** fase 0 cerrada (activación ~92 %, comando en ~0,15 s, pantalla apagada y reinicio verificados en el Realme; ADR-018, ADR-019). La corrida de 2 h con TV se omitió por decisión de Gonzalo. Fase 1 en curso.
+**Estado al 21 oct 2026:** fases 0 y 1 cerradas. Fase 1: el ciclo de voz completo funciona; "¿qué hora es?" respondió bien 5 de 9 desde ~3 m con una reunión a menos de 1 m (meta 10/10 no alcanzada). Gonzalo lo aceptó y la precisión con ruido sigue en la fase 2 (reglas tolerantes y set `eval/`). Fase 2 en curso.
 
 ## Backlog por fase
 
@@ -33,10 +33,10 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 ### Fase 1
 
-- [ ] Máquina de estados con tests
-- [ ] TTS nativo en español y pantalla de respuesta sobre el bloqueo (ADR-012)
-- [ ] Audio focus: bajar y restaurar volumen
-- [ ] Arranque automático al encender y escalera de batería del ADR-015
+- [x] Máquina de estados con tests (`src/orchestrator`, 28 pruebas)
+- [x] TTS nativo en español con voz elegible (es-us-x-esf-network) y pantalla de respuesta sobre el bloqueo (ADR-012)
+- [x] Audio focus: bajar y restaurar volumen; tono al activar; no escucha mientras habla
+- [x] Arranque automático al encender (20 oct) y escalera de batería del ADR-015 (ajustes de Realme y lista blanca de batería por ADB)
 
 ### Fase 2
 

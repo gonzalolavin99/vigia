@@ -27,5 +27,5 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 
 ## Estado
 - Puesta en marcha lista: doctor pasa 14 de 14 (16 oct), con teléfono, Echo, 3 WiZ y TV conectados.
-- Fase 0 cerrada el 20 oct (resultados en docs/metricas.md). Fase 1 (ciclo de voz) en curso; no adelantar la fase 2.
+- Fases 0 y 1 cerradas (20 y 21 oct; resultados en docs/metricas.md). Fase 2 (intenciones y recordatorios) en curso; no adelantar la fase 3.
 - Herramientas en G:\Dev (JDK, Android Studio, SDK, Ollama, Claude CLI, venv de Python); no instalar nada en C:.
