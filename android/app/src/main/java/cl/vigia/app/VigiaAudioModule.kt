@@ -11,6 +11,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import cl.vigia.app.audio.VoiceService
 import cl.vigia.app.boot.VigiaPrefs
+import cl.vigia.app.voice.Speaker
+import cl.vigia.app.voice.Turn
 
 class VigiaAudioModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
   init { AudioEvents.context = context }
@@ -31,6 +33,25 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
     VigiaPrefs.save(context, listening = false, diagnostic = false, saveAudio = false)
     context.stopService(Intent(context, VoiceService::class.java))
   }
+  // Efectos del orquestador de JS (src/orchestrator): hablar, mostrar, volver a escuchar y cerrar el turno.
+  @ReactMethod fun speak(text: String, promise: Promise) {
+    Speaker.init(context)
+    Speaker.say(text) { ok -> if (ok) promise.resolve(true) else promise.reject("TTS_FAILED", "No se pudo hablar") }
+  }
+
+  @ReactMethod fun show(text: String) { ResponseActivity.show(context, text) }
+  @ReactMethod fun listVoices(promise: Promise) {
+    Speaker.init(context)
+    val list = Arguments.createArray()
+    Speaker.voices().forEach { (name, locale, network) ->
+      list.pushMap(Arguments.createMap().apply { putString("name", name); putString("locale", locale); putBoolean("network", network) })
+    }
+    promise.resolve(Arguments.createMap().apply { putArray("voices", list); putString("current", Speaker.currentVoice()) })
+  }
+  @ReactMethod fun setVoice(name: String) { Speaker.setVoice(context, name) }
+  @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
+  @ReactMethod fun endTurn() { Turn.end(context) }
+
   // Tras reiniciar el teléfono el servicio arranca solo; la pantalla pregunta su estado al abrirse.
   @ReactMethod fun isRunning(promise: Promise) { promise.resolve(VoiceService.running) }
   @ReactMethod fun addListener(eventName: String) = Unit

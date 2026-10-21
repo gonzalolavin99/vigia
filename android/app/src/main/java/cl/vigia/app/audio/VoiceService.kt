@@ -16,6 +16,9 @@ import android.os.SystemClock
 import android.util.Log
 import cl.vigia.app.AudioEvents
 import cl.vigia.app.R
+import cl.vigia.app.voice.Speaker
+import cl.vigia.app.voice.Turn
+import com.facebook.react.ReactApplication
 import com.k2fsa.sherpa.onnx.FeatureConfig
 import com.k2fsa.sherpa.onnx.KeywordSpotter
 import com.k2fsa.sherpa.onnx.KeywordSpotterConfig
@@ -51,8 +54,10 @@ class VoiceService : Service() {
   // Activaciones por texto que el worker encontró; el hilo de audio las atiende en su ciclo.
   private data class TextWake(val fromSample: Long)
   private val textWakes = ConcurrentLinkedQueue<TextWake>()
-  // Últimos 3 s de audio, para no perder el inicio del comando tras una activación por texto.
-  private val ring = FloatArray(SAMPLE_RATE * 3)
+  // Últimos 10 s de audio: inicio del comando tras una activación por texto y pre-roll de cada tramo.
+  private val ring = FloatArray(SAMPLE_RATE * 10)
+  // Índice absoluto de la primera muestra que recibió el VAD de escucha desde su último reset (-1 = aún ninguna).
+  private var listenBase = -1L
   private var totalSamples = 0L
 
   private val wakeCount = java.util.concurrent.atomic.AtomicInteger()
@@ -64,6 +69,8 @@ class VoiceService : Service() {
   private var lastSpeechAt = 0L
   private val command = mutableListOf<FloatArray>()
   private var lastBeatAt = 0L
+  private var mutedUntil = 0L
+  private var muted = false
   private var levelSum = 0.0
   private var levelCount = 0
 
@@ -80,6 +87,9 @@ class VoiceService : Service() {
     wakeLock = getSystemService(PowerManager::class.java)
       .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Vigia:audio")
       .apply { setReferenceCounted(false); acquire() }
+    // El orquestador vive en JS: se carga aunque la app no esté abierta (por ejemplo, tras reiniciar el teléfono).
+    (application as ReactApplication).reactHost?.start()
+    Speaker.init(this)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -108,9 +118,9 @@ class VoiceService : Service() {
           modelConfig = OnlineModelConfig(transducer = OnlineTransducerModelConfig(encoder = File(kws, KWS_ENCODER).path, decoder = File(kws, KWS_DECODER).path, joiner = File(kws, KWS_JOINER).path), tokens = File(kws, "tokens.txt").path, numThreads = 2, provider = "cpu", modelingUnit = "bpe", bpeVocab = File(kws, "bpe.model").path),
           keywordsFile = File(kws, "keywords.txt").path, keywordsScore = 1.5f, keywordsThreshold = KWS_THRESHOLD))
         wakeStream = spotter.createStream()
-        vad = newVad(File(root, "silero_vad.onnx"))
+        vad = newVad(File(root, "silero_vad.onnx"), COMMAND_VAD_THRESHOLD)
         commandVad = vad
-        listenVad = newVad(File(root, "silero_vad.onnx"))
+        listenVad = newVad(File(root, "silero_vad.onnx"), LISTEN_VAD_THRESHOLD)
         nemo = OfflineRecognizer(config = OfflineRecognizerConfig(featConfig = FeatureConfig(sampleRate = SAMPLE_RATE, featureDim = 80), modelConfig = OfflineModelConfig(nemo = OfflineNemoEncDecCtcModelConfig(model = File(root, "nemo-es/model.int8.onnx").path), tokens = File(root, "nemo-es/tokens.txt").path, numThreads = 2, provider = "cpu")))
         if (saveAudio) evalDir = File(getExternalFilesDir(null), "eval").apply { mkdirs() }
 
@@ -128,6 +138,21 @@ class VoiceService : Service() {
           val samples = FloatArray(count) { shortBuffer[it] / 32768.0f }
           remember(samples)
           val now = SystemClock.elapsedRealtime()
+          // Mientras Vigía habla (y un rato después, por el retardo del Bluetooth) no escucha su propia voz.
+          if (Speaker.speaking) mutedUntil = now + MUTE_AFTER_SPEECH_MS
+          if (commandStartedAt == 0L && now < mutedUntil) {
+            if (!muted) { muted = true; spotter?.reset(wakeStream!!); listenVad?.let(::resetListen) }
+            heartbeat(samples)
+            continue
+          }
+          muted = false
+          if (commandStartedAt == 0L && commandRequested) {
+            // La respuesta pidió réplica: escuchar el comando sin palabra de activación.
+            commandRequested = false
+            spotter?.reset(wakeStream!!)
+            listenVad?.let(::resetListen)
+            startCommand(now, source = "reply", label = "REPLY", prefill = null)
+          }
           if (commandStartedAt == 0L) {
             listenVad?.let { listen(it, samples, kwsHit = false) }
             wakeStream?.acceptWaveform(samples, SAMPLE_RATE)
@@ -137,14 +162,14 @@ class VoiceService : Service() {
               if (keyword.isNotBlank()) {
                 spotter?.reset(wakeStream!!)
                 // El tramo con la palabra se cierra aquí: no debe volver a activar por texto.
-                listenVad?.let { it.flush(); drain(it, kwsHit = true); it.reset() }
+                listenVad?.let { it.flush(); drain(it, kwsHit = true); resetListen(it) }
                 startCommand(now, source = "kws", label = keyword, prefill = null)
               }
             }
             textWakes.poll()?.let { wake ->
               textWakes.clear()
               spotter?.reset(wakeStream!!)
-              listenVad?.reset()
+              listenVad?.let(::resetListen)
               // El usuario pudo empezar el comando mientras se decodificaba: se recupera desde el fin del tramo.
               startCommand(now, source = "text", label = "ALFRED", prefill = since(wake.fromSample))
             }
@@ -165,6 +190,7 @@ class VoiceService : Service() {
               command.clear()
               backToWake()
               detector.reset()
+              AudioEvents.send("captured")
               transcribeCommand(audio)
               AudioEvents.send("status", "message" to "Escuchando palabra de activación")
             } else if (!commandSpeechSeen && now - commandStartedAt > COMMAND_TIMEOUT_MS) {
@@ -173,6 +199,7 @@ class VoiceService : Service() {
               backToWake()
               detector.reset()
               log("command_timeout")
+              AudioEvents.send("timeout")
               AudioEvents.send("status", "message" to "Sin comando; escuchando palabra de activación")
             }
           }
@@ -204,6 +231,7 @@ class VoiceService : Service() {
     textWakes.clear()
     lastWakeSample = totalSamples
     val n = wakeCount.incrementAndGet()
+    Turn.begin(this)
     if (prefill != null && prefill.isNotEmpty()) {
       // Sin descarte inicial: el audio previo ya es posterior a "Alfred".
       commandStartedAt = now - SKIP_AFTER_WAKE_MS
@@ -220,12 +248,33 @@ class VoiceService : Service() {
   // VAD que cierra el comando; campo para que startCommand pueda prellenarlo.
   private var commandVad: Vad? = null
 
-  private fun newVad(model: File) = Vad(config = VadModelConfig(sileroVadModelConfig = SileroVadModelConfig(model = model.path, threshold = 0.5f, minSilenceDuration = 0.4f, minSpeechDuration = 0.25f, windowSize = 512, maxSpeechDuration = 8.0f), sampleRate = SAMPLE_RATE, numThreads = 1, provider = "cpu"))
+  private fun resetListen(detector: Vad) { detector.reset(); listenBase = -1L }
+
+  private fun newVad(model: File, threshold: Float) = Vad(config = VadModelConfig(sileroVadModelConfig = SileroVadModelConfig(model = model.path, threshold = threshold, minSilenceDuration = 0.4f, minSpeechDuration = 0.25f, windowSize = 512, maxSpeechDuration = 8.0f), sampleRate = SAMPLE_RATE, numThreads = 1, provider = "cpu"))
 
   private fun backToWake() { commandStartedAt = 0L }
 
   private fun remember(samples: FloatArray) {
     for (s in samples) { ring[(totalSamples % ring.size).toInt()] = s; totalSamples++ }
+  }
+
+  // Muestras [from, to) que siguen en el búfer circular; lo que ya salió se omite.
+  private fun range(from: Long, to: Long): FloatArray {
+    val start = maxOf(from, totalSamples - ring.size, 0L)
+    val n = (minOf(to, totalSamples) - start).toInt().coerceAtLeast(0)
+    return FloatArray(n) { ring[((start + it) % ring.size).toInt()] }
+  }
+
+  // Lleva la voz lejana a ~-20 dBFS (hasta +24 dB) antes de NeMo; no toca audio que ya está fuerte.
+  private fun normalize(audio: FloatArray): FloatArray {
+    if (audio.isEmpty()) return audio
+    var sum = 0.0
+    for (s in audio) sum += s * s
+    val dbfs = 10 * Math.log10(sum / audio.size + 1e-12)
+    val gainDb = minOf(MAX_GAIN_DB, TARGET_DBFS - dbfs)
+    if (gainDb <= 0) return audio
+    val gain = Math.pow(10.0, gainDb / 20).toFloat()
+    return FloatArray(audio.size) { (audio[it] * gain).coerceIn(-1f, 1f) }
   }
 
   private fun since(fromSample: Long): FloatArray {
@@ -243,19 +292,23 @@ class VoiceService : Service() {
 
   // Cada tramo de voz se transcribe con NeMo para buscar "Alfred" (ADR-018).
   private fun listen(detector: Vad, samples: FloatArray, kwsHit: Boolean) {
+    if (listenBase < 0) listenBase = totalSamples - samples.size
     detector.acceptWaveform(samples)
     drain(detector, kwsHit)
   }
 
   private fun drain(detector: Vad, kwsHit: Boolean) {
     while (!detector.empty()) {
-      val segment = detector.front().samples
+      val front = detector.front()
       detector.pop()
-      if (segment.size < SAMPLE_RATE / 4) continue
+      if (front.samples.size < SAMPLE_RATE / 4) continue
+      // Pre-roll: el VAD recorta el inicio de la voz, justo donde va "Alfred" (simulado: 7 → 10 de 12, 21 oct).
+      val absStart = listenBase + front.start
+      val segment = range(absStart - PREROLL_SAMPLES, absStart) + front.samples
       val at = System.currentTimeMillis()
       val endSample = totalSamples
       worker?.execute {
-        val (text, ms) = decode(nemo, segment)
+        val (text, ms) = decode(nemo, normalize(segment))
         val audioMs = segment.size * 1000L / SAMPLE_RATE
         val match = WAKE_IN_TEXT.find(text.lowercase())?.takeIf {
           val wordsBefore = text.substring(0, it.range.first).split(Regex("\\s+")).count { w -> w.any(Char::isLetter) }
@@ -274,6 +327,7 @@ class VoiceService : Service() {
           if (inlineCommand) {
             lastWakeSample = endSample
             val n = wakeCount.incrementAndGet()
+            Turn.begin(this)
             log("wake source=text-inline keyword=ALFRED count=$n")
             AudioEvents.send("wake", "text" to "ALFRED", "source" to "text-inline", "count" to n)
             log("transcript source=inline audioMs=$audioMs nemoMs=$ms text=\"$rest\"")
@@ -290,7 +344,7 @@ class VoiceService : Service() {
     val at = System.currentTimeMillis()
     worker?.execute {
       val audioMs = audio.size * 1000L / SAMPLE_RATE
-      val (text, ms) = decode(nemo, audio)
+      val (text, ms) = decode(nemo, normalize(audio))
       log("transcript audioMs=$audioMs nemoMs=$ms text=\"$text\"")
       AudioEvents.send("transcript", "text" to text.ifBlank { "(sin transcripción)" }, "elapsedMs" to ms, "audioMs" to audioMs, "at" to at)
       saveWav("command", at, audio, text)
@@ -401,6 +455,17 @@ class VoiceService : Service() {
   companion object {
     @Volatile var running = false
       private set
+    @Volatile private var commandRequested = false
+    /** Pedido del orquestador: el próximo comando no necesita palabra de activación. */
+    fun requestCommand() { commandRequested = true }
+    private const val MUTE_AFTER_SPEECH_MS = 600L
+    // Simulación de distancia con los 26 audios del 20 oct (scripts/eval-distance.py): VAD 0,25 + pre-roll 0,3 s + ganancia
+    // detecta 11/12 a ~1 m, 8/12 a −6 dB y 4–5/12 a −12 dB, contra 7, 4 y 0 con VAD 0,5 sin pre-roll.
+    private const val LISTEN_VAD_THRESHOLD = 0.25f
+    private const val COMMAND_VAD_THRESHOLD = 0.35f
+    private const val PREROLL_SAMPLES = 4800 // 0,3 s a 16 kHz
+    private const val TARGET_DBFS = -20.0
+    private const val MAX_GAIN_DB = 24.0
     const val EXTRA_DIAGNOSTIC = "diagnostic"
     const val EXTRA_SAVE_AUDIO = "saveAudio"
     private const val TAG = "VigiaMetrics"
