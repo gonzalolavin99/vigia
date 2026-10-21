@@ -42,7 +42,12 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
     Speaker.say(text) { ok -> if (ok) promise.resolve(true) else promise.reject("TTS_FAILED", "No se pudo hablar") }
   }
 
-  @ReactMethod fun show(text: String) { ResponseActivity.show(context, text) }
+  // La respuesta se ve en la pantalla principal; aquí solo se trae al frente y se enciende la pantalla.
+  @ReactMethod fun show(text: String) { MainActivity.bringToFront(context) }
+  // Estado de una alarma al abrir la pantalla (pudo empezar a sonar antes de que cargara la interfaz).
+  @ReactMethod fun ringStatus(promise: Promise) {
+    promise.resolve(Arguments.createMap().apply { putBoolean("ringing", Ringer.ringing); putString("message", Reminders.lastAnnouncement) })
+  }
   @ReactMethod fun listVoices(promise: Promise) {
     Speaker.init(context)
     val list = Arguments.createArray()

@@ -17,3 +17,7 @@ No hay que rootear, cambiar la versión de Android ni tocar el sistema. Android 
 ## Alternativas
 
 Root o ROM propia (descartado); launcher en modo kiosco (posible después si se quiere una pantalla tipo reloj permanente).
+
+## Actualización 22 oct: la pantalla sobre el bloqueo es la principal
+
+Gonzalo prefirió la pantalla principal (esfera de estado, historial, temporizadores) a una pantalla de respuesta aparte. `MainActivity` se muestra sobre el bloqueo y enciende la pantalla al decir "Alfred" o al sonar una alarma; la respuesta aparece en grande bajo la esfera y, si algo suena, un botón Detener. Se eliminó `ResponseActivity`. Sigue sin desbloquear el teléfono.

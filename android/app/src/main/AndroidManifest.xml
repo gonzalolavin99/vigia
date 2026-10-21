@@ -25,14 +25,6 @@
         </intent-filter>
       </receiver>
       <activity
-        android:name=".ResponseActivity"
-        android:exported="false"
-        android:excludeFromRecents="true"
-        android:launchMode="singleTask"
-        android:taskAffinity="cl.vigia.app.response"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
-        android:theme="@style/AppTheme" />
-      <activity
         android:name=".boot.BootActivity"
         android:exported="false"
         android:excludeFromRecents="true"

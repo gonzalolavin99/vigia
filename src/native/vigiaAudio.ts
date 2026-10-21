@@ -2,9 +2,9 @@ import {NativeEventEmitter, NativeModules} from 'react-native';
 
 // Módulo nativo VigiaAudio (android/.../VigiaAudioModule.kt) con tipos.
 export type AudioEvent = {
-  type: 'status' | 'wake' | 'heard' | 'captured' | 'timeout' | 'transcript' | 'error' | 'stopped' | 'ringing' | 'ring_stopped';
+  type: 'status' | 'wake' | 'heard' | 'captured' | 'timeout' | 'transcript' | 'error' | 'stopped' | 'ringing' | 'ring_stopped' | 'announce';
   text?: string; elapsedMs?: number; audioMs?: number; source?: string;
-  count?: number; message?: string; kws?: boolean; textWake?: boolean; at?: number;
+  count?: number; message?: string; kws?: boolean; textWake?: boolean; at?: number; ringing?: boolean;
 };
 
 type VigiaAudioModule = {
@@ -18,6 +18,7 @@ type VigiaAudioModule = {
   listVoices(): Promise<{voices: Voice[]; current: string | null}>;
   setVoice(name: string): void;
   stopAlarm(): void;
+  ringStatus(): Promise<{ringing: boolean; message: string | null}>;
   remindersAdd(text: string, at: number, kind: string): Promise<{id: number; text: string; at: number; kind: string}>;
   remindersList(): Promise<{id: number; text: string; at: number; kind: string}[]>;
   remindersRemove(id: number): Promise<boolean>;

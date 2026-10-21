@@ -9,12 +9,18 @@ import type {useVigia} from './useVigia';
 
 // Pantalla principal: esfera de estado, temporizadores en vivo, recordatorios por día e historial.
 export default function Home({vigia}: {vigia: ReturnType<typeof useVigia>}): React.JSX.Element {
-  const {running, mode, now, timers, reminders, history, start, remove} = vigia;
+  const {running, mode, now, timers, reminders, history, start, remove, ringing, message, stopAlarm} = vigia;
   return (
     <View>
       <View style={styles.orbArea}>
         <Orb mode={mode} />
         <Text style={styles.orbLabel}>{orbLabels[mode]}</Text>
+        {message ? <Text style={styles.message}>{message}</Text> : null}
+        {ringing ? (
+          <Pressable accessibilityRole="button" onPress={stopAlarm} style={styles.stopButton}>
+            <Text style={styles.stopText}>Detener</Text>
+          </Pressable>
+        ) : null}
         {!running ? (
           <Pressable accessibilityRole="button" onPress={() => start()} style={styles.startButton}>
             <Text style={styles.startText}>Iniciar escucha</Text>
@@ -113,6 +119,9 @@ function groupByDay(items: Reminder[], now: number): [string, Reminder[]][] {
 const styles = StyleSheet.create({
   orbArea: {alignItems: 'center', marginTop: 4, marginBottom: 8},
   orbLabel: {color: colors.text, fontSize: 22, fontWeight: '600', marginTop: -12},
+  message: {color: colors.text, fontSize: 26, fontWeight: '500', textAlign: 'center', lineHeight: 34, marginTop: 14, paddingHorizontal: 8},
+  stopButton: {backgroundColor: colors.dangerBg, borderColor: colors.danger, borderWidth: 2, borderRadius: 22, paddingVertical: 22, alignSelf: 'stretch', alignItems: 'center', marginTop: 20},
+  stopText: {color: colors.text, fontSize: 30, fontWeight: '700'},
   startButton: {backgroundColor: colors.accent, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 32, marginTop: 18},
   startText: {color: colors.bg, fontSize: 17, fontWeight: '700'},
   card: {backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 18, padding: 18, marginTop: 16},

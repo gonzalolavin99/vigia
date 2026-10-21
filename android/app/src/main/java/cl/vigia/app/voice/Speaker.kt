@@ -94,6 +94,8 @@ object Turn {
   private var tone: ToneGenerator? = null
 
   @Synchronized fun begin(context: Context) {
+    // La esfera en "Te escucho…" aparece sobre el bloqueo apenas se dice "Alfred".
+    cl.vigia.app.MainActivity.bringToFront(context)
     val audio = context.getSystemService(AudioManager::class.java)
     if (focus == null && Build.VERSION.SDK_INT >= 26) {
       focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)

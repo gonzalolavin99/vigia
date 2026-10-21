@@ -9,7 +9,8 @@ import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import cl.vigia.app.ResponseActivity
+import cl.vigia.app.AudioEvents
+import cl.vigia.app.MainActivity
 import cl.vigia.app.voice.Speaker
 
 // Recordatorios, alarmas y temporizadores (ADR-009): SQLite es la fuente de verdad y AlarmManager los hace sonar
@@ -30,6 +31,9 @@ object Reminders {
   private const val TAG = "VigiaMetrics"
   private const val EXTRA_ID = "reminderId"
   @Volatile private var db: Db? = null
+  /** Último aviso, para mostrarlo si la pantalla se abre después de que sonó. */
+  @Volatile var lastAnnouncement: String? = null
+    private set
 
   private fun db(context: Context): SQLiteDatabase =
     (db ?: synchronized(this) { db ?: Db(context.applicationContext).also { db = it } }).writableDatabase
@@ -87,16 +91,15 @@ object Reminders {
   private fun announce(context: Context, message: String, ring: Boolean) {
     val app = context.applicationContext
     Speaker.init(app)
+    // La pantalla principal muestra el aviso bajo la esfera (y el botón Detener si suena).
+    lastAnnouncement = message
+    MainActivity.bringToFront(app)
+    AudioEvents.send("announce", "text" to message, "ringing" to ring)
     if (!ring) {
-      ResponseActivity.show(app, message, visibleMs = 15_000L)
       Speaker.say(message) { Speaker.say(message) {} }
       return
     }
-    ResponseActivity.show(app, message, visibleMs = 130_000L, alarm = true)
-    Ringer.start(app) {
-      ResponseActivity.dismiss()
-      Speaker.say("Listo.") {}
-    }
+    Ringer.start(app) { Speaker.say("Listo.") {} }
   }
 
   private fun alarms(context: Context) = context.getSystemService(AlarmManager::class.java)

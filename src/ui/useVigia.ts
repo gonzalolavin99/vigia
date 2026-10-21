@@ -7,6 +7,9 @@ import {assistant, orchestrator} from '../orchestrator/runtime';
 import {onAudioEvent, VigiaAudio} from '../native/vigiaAudio';
 import type {OrbMode} from './theme';
 
+// Cuánto queda visible bajo la esfera lo último que dijo Vigía (una alarma sonando queda hasta detenerla).
+const MESSAGE_MS = 15_000;
+
 // Estado de la pantalla principal: escucha, esfera, recordatorios, temporizadores e historial.
 export function useVigia() {
   const [running, setRunning] = useState(false);
@@ -15,6 +18,8 @@ export function useVigia() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [history, setHistory] = useState<Turn[]>(getHistory());
   const [now, setNow] = useState(Date.now());
+  // Lo que Vigía dice o avisa, en grande bajo la esfera; se borra solo al rato.
+  const [message, setMessage] = useState<{text: string; at: number} | null>(null);
 
   const refresh = useCallback(() => {
     VigiaAudio.remindersList().then(list => setReminders(list as Reminder[])).catch(() => {});
@@ -22,9 +27,12 @@ export function useVigia() {
 
   useEffect(() => {
     VigiaAudio.isRunning().then(setRunning);
+    VigiaAudio.ringStatus().then(s => { setRinging(s.ringing); if (s.ringing && s.message) setMessage({text: s.message, at: Date.now()}); });
     refresh();
-    const offTurn = orchestrator.subscribe(state => {
+    const offTurn = orchestrator.subscribe((state, detail) => {
       setTurn(state);
+      if (state === 'speaking' && detail) setMessage({text: detail, at: Date.now()});
+      if (state === 'listening') setMessage(null);
       // Al cerrar un turno pudo crearse o borrarse un recordatorio.
       if (state === 'idle') refresh();
     });
@@ -32,6 +40,7 @@ export function useVigia() {
     const offAudio = onAudioEvent(event => {
       if (event.type === 'ringing') setRinging(true);
       if (event.type === 'ring_stopped') { setRinging(false); refresh(); }
+      if (event.type === 'announce' && event.text) { setMessage({text: event.text, at: Date.now()}); if (event.ringing) setRinging(true); refresh(); }
       if (event.type === 'stopped' || event.type === 'error') setRunning(false);
     });
     // Reloj de la cuenta regresiva; cada 30 s se releen los recordatorios por si alguno ya sonó.
@@ -54,16 +63,19 @@ export function useVigia() {
     refresh();
   }, [refresh]);
 
-  const mode: OrbMode = !running ? 'off'
-    : ringing ? 'ringing'
+  // Una alarma suena aunque la escucha esté detenida: el rojo tiene prioridad.
+  const mode: OrbMode = ringing ? 'ringing'
+    : !running ? 'off'
     : turn === 'listening' ? 'listening'
     : turn === 'transcribing' || turn === 'resolving' ? 'thinking'
     : turn === 'speaking' ? 'speaking'
     : 'idle';
 
   const upcoming = reminders.filter(r => r.at > now - 60_000);
+  const visibleMessage = message && (ringing || now - message.at < MESSAGE_MS) ? message.text : null;
   return {
-    running, mode, now, history, start, stop, remove, assistant,
+    running, mode, now, history, start, stop, remove, assistant, ringing, message: visibleMessage,
+    stopAlarm: () => VigiaAudio.stopAlarm(),
     timers: upcoming.filter(r => r.kind === 'timer'),
     reminders: upcoming.filter(r => r.kind !== 'timer'),
   };
