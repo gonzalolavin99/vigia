@@ -14,7 +14,7 @@ Siete fases, cada una termina con algo que se puede usar y un criterio de salida
 
 Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a paso en [puesta-en-marcha.md](puesta-en-marcha.md). No modifica el sistema del teléfono.
 
-**Estado al 20 oct 2026:** fase 0 cumple sus criterios salvo la corrida formal de 2 h con TV. Activación ~92 %, comando en ~0,15 s, pantalla apagada y arranque tras reinicio verificados en el Realme (ADR-018, ADR-019). Ver [estado actual](estado-actual.md).
+**Estado al 20 oct 2026:** fase 0 cerrada (activación ~92 %, comando en ~0,15 s, pantalla apagada y reinicio verificados en el Realme; ADR-018, ADR-019). La corrida de 2 h con TV se omitió por decisión de Gonzalo. Fase 1 en curso.
 
 ## Backlog por fase
 
@@ -25,7 +25,7 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 - [x] Integrar sherpa-onnx: detector de palabra clave, VAD y voz a texto; tras medir, activación híbrida (ADR-018) y NeMo español (ADR-019)
 - [x] Puente de eventos a JS y pantalla de diagnóstico
 - [x] Compilar APK release arm64-v8a con modelos incluidos (149 MB) e instalar en el Realme
-- [ ] Medir activaciones falsas con TV: 0 en 24 min reales y 0 simuladas en 67 min con la regla de inicio de frase (20 oct); falta la corrida formal de 2 h (A2). Pantalla apagada: 67 min sin cortes. Latencia: NeMo 120–290 ms por comando
+- [x] Activaciones falsas con TV: 0 en 24 min reales y 0 simuladas en 67 min con la regla de inicio de frase (20 oct). Gonzalo decidió omitir la corrida formal de 2 h (A2) y cerrar la fase; se vigila en el uso diario. Pantalla apagada: 67 min sin cortes. Latencia: NeMo 120–290 ms por comando
 - [x] Instalar y probar en el Realme (16–20 oct): 5 rondas con registro
 - [x] Confirmar "Alfred" en español e inglés: 12 de ~13 (~92 %) con teléfono bloqueado (20 oct); "Hey Alfred" también por el detector
 - [x] Reiniciar el teléfono: el servicio arrancó solo con micrófono real y respondió "¿Qué hora es?" (20 oct, ADR-003). Requiere "Mostrar sobre otras apps" e inicio automático activados a mano en el Realme

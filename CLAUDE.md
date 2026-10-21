@@ -27,5 +27,5 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 
 ## Estado
 - Puesta en marcha lista: doctor pasa 14 de 14 (16 oct), con teléfono, Echo, 3 WiZ y TV conectados.
-- Fase 0 en curso: el prototipo corre en el Realme con activación híbrida (ADR-018) y NeMo español (ADR-019). Detalle en docs/estado-actual.md. No iniciar fase 1 todavía.
+- Fase 0 cerrada el 20 oct (resultados en docs/metricas.md). Fase 1 (ciclo de voz) en curso; no adelantar la fase 2.
 - Herramientas en G:\Dev (JDK, Android Studio, SDK, Ollama, Claude CLI, venv de Python); no instalar nada en C:.
