@@ -1,6 +1,10 @@
-import {readFileSync} from 'fs';
-import {join} from 'path';
 import {parseIntent, Slots} from '../intents';
+
+// Jest corre en Node; el proyecto no incluye los tipos de Node (package-lock dañado, ver estado-actual.md).
+declare const require: (module: string) => any;
+declare const __dirname: string;
+const {readFileSync} = require('fs');
+const {join} = require('path');
 
 // Evaluación del motor de intenciones sobre eval/nlu.jsonl (docs/evaluacion.md): exactitud de intención y de slots,
 // por separado en dev (donde se ajustan las reglas) y test (lo que se reporta). "Ahora" fijo del set.
@@ -8,7 +12,7 @@ const NOW = new Date(2026, 9, 21, 18, 0);
 type Case = {text: string; intent: string; slots: Slots; source: string; split: 'dev' | 'test'};
 
 const cases: Case[] = readFileSync(join(__dirname, '../../../eval/nlu.jsonl'), 'utf8')
-  .split('\n').filter(Boolean).map(line => JSON.parse(line));
+  .split('\n').filter(Boolean).map((line: string) => JSON.parse(line));
 
 const sameSlots = (a: Slots, b: Slots) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
