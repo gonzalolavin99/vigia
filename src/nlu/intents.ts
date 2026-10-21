@@ -9,6 +9,8 @@ export type Slots = {
   time?: string;
   seconds?: number;
   text?: string;
+  /** El mismo texto tal como se dijo (con tildes y ñ), para guardarlo y leerlo en voz alta. */
+  label?: string;
   range?: 'all' | 'today' | 'tomorrow' | 'week' | 'month';
   all?: boolean;
 };
@@ -76,6 +78,7 @@ export function parseIntent(raw: string, now: Date): Intent {
     const slots: Slots = {};
     const about = `${when.rest.replace(REMIND, ' ').replace(ALARM_AT, ' ').replace(/\s+/g, ' ').trim()} `.replace(LEADING, '').trim();
     slots.text = isAlarm || !about ? 'alarma' : about;
+    if (slots.text !== 'alarma') slots.label = original(raw, about);
     if (when.date) slots.date = when.date;
     if (when.time) {
       slots.time = when.time;
@@ -96,4 +99,27 @@ export function parseIntent(raw: string, now: Date): Intent {
   }
 
   return {intent: 'desconocido', slots: {}};
+}
+
+/**
+ * Recupera del texto original las palabras que corresponden a `normalized` ("viajo a espana" → "viajo a España"),
+ * para no perder tildes ni ñ al guardar y leer el recordatorio. Si no las ubica, devuelve `normalized`.
+ */
+export function original(raw: string, normalized: string): string {
+  const want = normalized.split(' ');
+  const words = raw.split(/\s+/).filter(Boolean);
+  const norm = words.map(w => normalize(w));
+  for (let start = 0; start < words.length; start++) {
+    let i = start;
+    let k = 0;
+    // Una palabra original puede normalizarse a varias ("9:30" → "9 y 30") o a ninguna ("¿").
+    while (i < words.length && k < want.length) {
+      const parts = norm[i] ? norm[i].split(' ') : [];
+      if (parts.length && parts.every((p, j) => want[k + j] === p)) { k += parts.length; i++; }
+      else if (!parts.length && k > 0) i++;
+      else break;
+    }
+    if (k === want.length) return words.slice(start, i).join(' ').replace(/^[¿¡"'(]+|[?!.,;:"')]+$/g, '');
+  }
+  return normalized;
 }

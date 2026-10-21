@@ -1,6 +1,6 @@
 import {Intent, parseIntent} from '../nlu/intents';
 import {normalize} from '../nlu/normalize';
-import {defaultDate, parseWhen} from '../nlu/when';
+import {addDays, defaultDate, isoDate, parseWhen} from '../nlu/when';
 import {cuandoFrase, decirHora, duracionFrase, fechaFrase, horaFrase, toDate} from '../skills/say';
 import type {Reply} from './machine';
 
@@ -83,7 +83,7 @@ export class Assistant {
       }
 
       case 'recordatorio.crear':
-        return this.createReminder(slots.text ?? 'alarma', slots.date, slots.time);
+        return this.createReminder(slots.label ?? slots.text ?? 'alarma', slots.date, slots.time);
 
       case 'recordatorio.listar':
         return this.listReminders(slots.range ?? 'all');
@@ -111,7 +111,9 @@ export class Assistant {
         if (!/\b(a|de|para)\s+las?\b|mediodia|medianoche/.test(spoken)) spoken = `a las ${spoken}`;
         const when = parseWhen(spoken, this.now(), {morningBias: kind === 'alarm'});
         if (!when.time) return null;
-        return this.createReminder(text, date, when.time);
+        // "A las doce de la noche" del día pedido es la medianoche siguiente.
+        const day = date && when.nextDay ? isoDate(addDays(toDate(date), 1)) : date;
+        return this.createReminder(text, day, when.time);
       });
     }
     const at = toDate(date ?? defaultDate(time, this.now()), time);

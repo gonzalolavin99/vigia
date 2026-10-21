@@ -14,7 +14,11 @@ type Case = {text: string; intent: string; slots: Slots; source: string; split: 
 const cases: Case[] = readFileSync(join(__dirname, '../../../eval/nlu.jsonl'), 'utf8')
   .split('\n').filter(Boolean).map((line: string) => JSON.parse(line));
 
-const sameSlots = (a: Slots, b: Slots) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
+// "label" es solo para mostrar; el set compara el texto normalizado.
+const sameSlots = (a: Slots, b: Slots) => {
+  const key = (s: Slots) => JSON.stringify(Object.entries(s).filter(([k]) => k !== 'label').sort());
+  return key(a) === key(b);
+};
 
 function score(split: Case['split']) {
   const set = cases.filter(c => c.split === split);

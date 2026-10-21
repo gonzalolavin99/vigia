@@ -6,6 +6,8 @@ export type When = {
   date?: string;
   /** HH:MM, 24 h */
   time?: string;
+  /** La hora cae al día siguiente de la fecha dicha ("las 12 de la noche"). */
+  nextDay?: boolean;
   /** El texto sin las expresiones de fecha y hora. */
   rest: string;
 };
@@ -16,7 +18,7 @@ const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes'
 const pad = (n: number) => String(n).padStart(2, '0');
 export const isoDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const isoTime = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, d.getHours(), d.getMinutes());
+export const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, d.getHours(), d.getMinutes());
 
 const UNIT_SECONDS: Record<string, number> = {segundo: 1, minuto: 60, hora: 3600};
 
@@ -43,6 +45,7 @@ export function parseWhen(text: string, now: Date, options: Options = {}): When 
   let rest = ` ${text} `;
   let date: Date | undefined;
   let time: {h: number; m: number} | undefined;
+  let nextDay = false;
   const take = (re: RegExp): RegExpMatchArray | null => {
     const m = rest.match(re);
     if (m) rest = rest.replace(m[0], ' ');
@@ -94,7 +97,9 @@ export function parseWhen(text: string, now: Date, options: Options = {}): When 
       let h = t[1] === 'una' ? 1 : Number(t[1]);
       const m = t[2] === 'media' ? 30 : t[2] === 'cuarto' ? 15 : t[2] ? Number(t[2]) : 0;
       const period = t[3] ?? '';
-      if (/tarde|noche|pm/.test(period) && h < 12) h += 12;
+      // "Las 12 de la noche" del día 20 es la medianoche al final del 20: 00:00 del 21 (21 oct: se guardaba al mediodía).
+      if (/noche/.test(period) && h === 12) { h = 0; date = addDays(date ?? now, 1); nextDay = true; }
+      else if (/tarde|noche|pm/.test(period) && h < 12) h += 12;
       else if (/manana|madrugada|am/.test(period) && h === 12) h = 0;
       else if (!period && !options.morningBias && h >= 1 && h <= 6) h += 12;
       time = {h, m};
@@ -104,6 +109,7 @@ export function parseWhen(text: string, now: Date, options: Options = {}): When 
   const result: When = {rest: rest.replace(/\s+/g, ' ').trim()};
   if (date) result.date = isoDate(date);
   if (time) result.time = `${pad(time.h)}:${pad(time.m)}`;
+  if (nextDay) result.nextDay = true;
   return result;
 }
 

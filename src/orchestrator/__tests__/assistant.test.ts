@@ -50,15 +50,15 @@ describe('recordatorios', () => {
   it('crea con fecha y hora', async () => {
     const {store, assistant} = setup();
     const reply = await assistant.resolve('recuérdame llamar a Felipe mañana a las nueve');
-    expect(reply.say).toBe('Listo, te recuerdo mañana a las 9 en punto de la mañana: llamar a felipe.');
-    expect(store.items[0]).toMatchObject({text: 'llamar a felipe', at: at(22, 9), kind: 'reminder'});
+    expect(reply.say).toBe('Listo, te recuerdo mañana a las 9 en punto de la mañana: llamar a Felipe.');
+    expect(store.items[0]).toMatchObject({text: 'llamar a Felipe', at: at(22, 9), kind: 'reminder'});
   });
 
   it('pregunta la hora cuando falta y usa la respuesta', async () => {
     const {store, assistant} = setup();
     await expect(assistant.resolve('Recuérdame mañana de llamar a Felipe')).resolves.toEqual({say: '¿A qué hora?', expectReply: true});
     const reply = await assistant.resolve('a las 10 de la mañana');
-    expect(reply.say).toBe('Listo, te recuerdo mañana a las 10 en punto de la mañana: llamar a felipe.');
+    expect(reply.say).toBe('Listo, te recuerdo mañana a las 10 en punto de la mañana: llamar a Felipe.');
     expect(store.items[0].at).toBe(at(22, 10));
   });
 
@@ -67,6 +67,14 @@ describe('recordatorios', () => {
     await assistant.resolve('recuérdame el 15 de diciembre de comprar los regalos');
     await assistant.resolve('nueve y media');
     expect(store.items[0].at).toBe(new Date(2026, 11, 15, 9, 30).getTime());
+  });
+
+  it('"a las doce de la noche" es la medianoche al final de ese día (caso real, 21 oct)', async () => {
+    const {store, assistant} = setup();
+    await assistant.resolve('¿Recuérdame el veinte de noviembre que viajo a España?');
+    const reply = await assistant.resolve('A las doce de la noche.');
+    expect(store.items[0].at).toBe(new Date(2026, 10, 21, 0, 0).getTime());
+    expect(reply.say).toBe('Listo, te recuerdo el sábado 21 de noviembre a las 12 en punto de la madrugada: viajo a España.');
   });
 
   it('se puede cancelar la pregunta', async () => {
