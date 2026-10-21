@@ -256,8 +256,11 @@ class VoiceService : Service() {
       val endSample = totalSamples
       worker?.execute {
         val (text, ms) = decode(nemo, segment)
-        val match = WAKE_IN_TEXT.find(text.lowercase())
         val audioMs = segment.size * 1000L / SAMPLE_RATE
+        val match = WAKE_IN_TEXT.find(text.lowercase())?.takeIf {
+          val wordsBefore = text.substring(0, it.range.first).split(Regex("\\s+")).count { w -> w.any(Char::isLetter) }
+          wordsBefore <= WAKE_MAX_WORDS_BEFORE && audioMs <= WAKE_MAX_SEGMENT_MS
+        }
         // Lo que sigue a "Alfred" en el mismo tramo ("Hola Alfred, ¿qué hora es?") ya es el comando.
         val rest = match?.let { text.substring(minOf(it.range.last + 1, text.length)).trim().trimStart(',', '.', ' ', '¿', '?') }.orEmpty()
         val inlineCommand = rest.split(Regex("\\s+")).count { it.any(Char::isLetter) } >= 2
@@ -412,8 +415,13 @@ class VoiceService : Service() {
     private const val HEARTBEAT_MS = 5000L
     // Umbral por defecto; keywords.txt fija uno propio por frase (#0.15/#0.2) tras detectar 1 de ~30 intentos (16 oct).
     private const val KWS_THRESHOLD = 0.25f
-    // Palabra que empieza con "alf" o "al fr/fe" (17 oct: "al fe" y "ella alf" eran "Hola Alfred"). Riesgo: "alfombra".
-    private val WAKE_IN_TEXT = Regex("(?<!\\p{L})(alf\\p{L}*|al f[re]\\p{L}*)")
+    // "alf", "alfr…", "alfe…" o "al fr/fe…" (17 oct: "al fe" y "ella alf" eran "Hola Alfred"), pero no
+    // "Alfonso" ni "alfa…": con la TV 67 min dieron 4 activaciones falsas (20 oct).
+    private val WAKE_IN_TEXT = Regex("(?<!\\p{L})(alf(?=[re]|\\P{L}|$)\\p{L}*|al f[re]\\p{L}*)")
+    // "Alfred" abre la frase (hasta 2 palabras antes: "Oye, a Alfred") y la frase es corta; la TV lo dice al medio
+    // de frases largas. Simulado sobre el 20 oct: 0 falsas con TV y 12 de 12 intentos reales.
+    private const val WAKE_MAX_WORDS_BEFORE = 2
+    private const val WAKE_MAX_SEGMENT_MS = 6000L
     private const val KWS_ENCODER = "encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
     private const val KWS_DECODER = "decoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
     private const val KWS_JOINER = "joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
