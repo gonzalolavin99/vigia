@@ -8,10 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.media.AudioAttributes
-import android.media.RingtoneManager
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import cl.vigia.app.ResponseActivity
 import cl.vigia.app.voice.Speaker
@@ -86,22 +82,22 @@ object Reminders {
     announce(context, message, ring = reminder.kind != "reminder")
   }
 
-  // Suena (alarma y temporizador: 8 s de tono de alarma), muestra el texto sobre el bloqueo y lo dice dos veces.
+  // Recordatorio: muestra el texto sobre el bloqueo y lo dice dos veces.
+  // Alarma y temporizador: suenan a pulsos hasta que se detienen con la voz, el botón o a los 2 min (Ringer).
   private fun announce(context: Context, message: String, ring: Boolean) {
     val app = context.applicationContext
-    ResponseActivity.show(app, message, visibleMs = if (ring) 25_000L else 15_000L)
     Speaker.init(app)
-    val speakTwice = { Speaker.say(message) { Speaker.say(message) {} } }
-    if (!ring) { speakTwice(); return }
-    val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    val tone = RingtoneManager.getRingtone(app, uri)?.apply {
-      audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build()
-      play()
+    if (!ring) {
+      ResponseActivity.show(app, message, visibleMs = 15_000L)
+      Speaker.say(message) { Speaker.say(message) {} }
+      return
     }
-    Handler(Looper.getMainLooper()).postDelayed({ tone?.stop(); speakTwice() }, RING_MS)
+    ResponseActivity.show(app, message, visibleMs = 130_000L, alarm = true)
+    Ringer.start(app) {
+      ResponseActivity.dismiss()
+      Speaker.say("Listo.") {}
+    }
   }
-
-  private const val RING_MS = 8000L
 
   private fun alarms(context: Context) = context.getSystemService(AlarmManager::class.java)
 

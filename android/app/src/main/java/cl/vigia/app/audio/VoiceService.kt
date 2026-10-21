@@ -16,6 +16,7 @@ import android.os.SystemClock
 import android.util.Log
 import cl.vigia.app.AudioEvents
 import cl.vigia.app.R
+import cl.vigia.app.reminders.Ringer
 import cl.vigia.app.voice.Speaker
 import cl.vigia.app.voice.Turn
 import com.facebook.react.ReactApplication
@@ -225,6 +226,8 @@ class VoiceService : Service() {
   }
 
   private fun startCommand(now: Long, source: String, label: String, prefill: FloatArray?) {
+    // Con una alarma sonando, "Alfred" la detiene; no se abre un comando.
+    if (Ringer.ringing) { Ringer.stop("voice_$source"); return }
     commandVad?.reset()
     command.clear()
     commandSpeechSeen = false
@@ -253,6 +256,9 @@ class VoiceService : Service() {
   private fun newVad(model: File, threshold: Float) = Vad(config = VadModelConfig(sileroVadModelConfig = SileroVadModelConfig(model = model.path, threshold = threshold, minSilenceDuration = 0.4f, minSpeechDuration = 0.25f, windowSize = 512, maxSpeechDuration = 8.0f), sampleRate = SAMPLE_RATE, numThreads = 1, provider = "cpu"))
 
   private fun backToWake() { commandStartedAt = 0L }
+
+  // Minúsculas sin tildes, para buscar palabras de detención.
+  private fun plain(text: String) = java.text.Normalizer.normalize(text.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")
 
   private fun remember(samples: FloatArray) {
     for (s in samples) { ring[(totalSamples % ring.size).toInt()] = s; totalSamples++ }
@@ -321,6 +327,11 @@ class VoiceService : Service() {
             else "heard kws=$kwsHit textWake=${match != null} audioMs=$audioMs decodeMs=$ms")
         if (diagnostic || match != null) AudioEvents.send("heard", "text" to text, "kws" to kwsHit, "textWake" to (match != null), "audioMs" to audioMs, "at" to at)
         saveWav("heard-${if (kwsHit) "kws" else "nokws"}", at, segment, text)
+        // Con una alarma sonando basta "Alfred" o una palabra de detención ("para", "apaga", "basta"...).
+        if (Ringer.ringing && (match != null || STOP_WORDS.containsMatchIn(plain(text)))) {
+          Ringer.stop(if (match != null) "voice_text" else "voice_stopword")
+          return@execute
+        }
         // Si el detector ya activó con esta misma frase (hasta 1 s después del fin del tramo), no se repite.
         val alreadyWoken = lastWakeSample > endSample - SAMPLE_RATE
         if (match != null && !kwsHit && !alreadyWoken) {
@@ -459,6 +470,8 @@ class VoiceService : Service() {
     /** Pedido del orquestador: el próximo comando no necesita palabra de activación. */
     fun requestCommand() { commandRequested = true }
     private const val MUTE_AFTER_SPEECH_MS = 600L
+    // Detienen una alarma o temporizador que está sonando (sin "Alfred"). Riesgo aceptado: la TV puede apagarla.
+    private val STOP_WORDS = Regex("(?<!\\p{L})(para|parar|paralo|parala|detente|detener|detenla|deten|alto|apaga|apagala|apagalo|stop|basta|silencio|ya|callate|suficiente|listo)(?!\\p{L})")
     // Simulación de distancia con los 26 audios del 20 oct (scripts/eval-distance.py): VAD 0,25 + pre-roll 0,3 s + ganancia
     // detecta 11/12 a ~1 m, 8/12 a −6 dB y 4–5/12 a −12 dB, contra 7, 4 y 0 con VAD 0,5 sin pre-roll.
     private const val LISTEN_VAD_THRESHOLD = 0.25f

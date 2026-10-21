@@ -13,6 +13,7 @@ import cl.vigia.app.audio.VoiceService
 import cl.vigia.app.boot.VigiaPrefs
 import cl.vigia.app.reminders.Reminder
 import cl.vigia.app.reminders.Reminders
+import cl.vigia.app.reminders.Ringer
 import cl.vigia.app.voice.Speaker
 import cl.vigia.app.voice.Turn
 
@@ -69,6 +70,7 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
   private fun toMap(r: Reminder) = Arguments.createMap().apply {
     putDouble("id", r.id.toDouble()); putString("text", r.text); putDouble("at", r.at.toDouble()); putString("kind", r.kind)
   }
+  @ReactMethod fun stopAlarm() { Ringer.stop("button") }
   @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
   @ReactMethod fun endTurn() { Turn.end(context) }
 
