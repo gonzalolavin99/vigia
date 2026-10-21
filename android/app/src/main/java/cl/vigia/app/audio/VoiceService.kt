@@ -312,7 +312,7 @@ class VoiceService : Service() {
         val audioMs = segment.size * 1000L / SAMPLE_RATE
         val match = WAKE_IN_TEXT.find(text.lowercase())?.takeIf {
           val wordsBefore = text.substring(0, it.range.first).split(Regex("\\s+")).count { w -> w.any(Char::isLetter) }
-          wordsBefore <= WAKE_MAX_WORDS_BEFORE && audioMs <= WAKE_MAX_SEGMENT_MS
+          wordsBefore <= WAKE_MAX_WORDS_BEFORE
         }
         // Lo que sigue a "Alfred" en el mismo tramo ("Hola Alfred, ¿qué hora es?") ya es el comando.
         val rest = match?.let { text.substring(minOf(it.range.last + 1, text.length)).trim().trimStart(',', '.', ' ', '¿', '?') }.orEmpty()
@@ -483,10 +483,10 @@ class VoiceService : Service() {
     // "alf", "alfr…", "alfe…" o "al fr/fe…" (17 oct: "al fe" y "ella alf" eran "Hola Alfred"), pero no
     // "Alfonso" ni "alfa…": con la TV 67 min dieron 4 activaciones falsas (20 oct).
     private val WAKE_IN_TEXT = Regex("(?<!\\p{L})(alf(?=[re]|\\P{L}|$)\\p{L}*|al f[re]\\p{L}*)")
-    // "Alfred" abre la frase (hasta 2 palabras antes: "Oye, a Alfred") y la frase es corta; la TV lo dice al medio
-    // de frases largas. Simulado sobre el 20 oct: 0 falsas con TV y 12 de 12 intentos reales.
-    private const val WAKE_MAX_WORDS_BEFORE = 2
-    private const val WAKE_MAX_SEGMENT_MS = 6000L
+    // "Alfred" abre la frase (hasta 3 palabras antes: "Alexa, se redonda. ¿Alfred…"); la TV lo dice al medio de frases
+    // largas. Sin límite de duración: con un video de fondo la voz se junta en tramos de 7–10 s (21 oct).
+    // Simulado sobre 91 min de TV y los intentos del 21 oct: 0 falsas y 20 de 20 (antes, con 2 palabras y 6 s: 16 de 20).
+    private const val WAKE_MAX_WORDS_BEFORE = 3
     // NeMo FastConformer transducer español (ADR-019): desde lejos entendió 8/9 "qué hora es" contra 5/9 del CTC (21 oct).
     private const val NEMO = "nemo-es-rnnt"
     private const val KWS_ENCODER = "encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx"
