@@ -38,10 +38,10 @@ describe('hora y fecha', () => {
 describe('temporizador', () => {
   it('crea, consulta y cancela', async () => {
     const {store, assistant} = setup();
-    await expect(assistant.resolve('Ponme un temporizador de 10 minutos')).resolves.toEqual({say: 'Listo, temporizador de 10 minutos.'});
+    await expect(assistant.resolve('Ponme un temporizador de 10 minutos')).resolves.toEqual({say: 'Listo.', show: 'Temporizador de 10 minutos.'});
     expect(store.items[0]).toMatchObject({kind: 'timer', at: NOW.getTime() + 600_000});
     await expect(assistant.resolve('¿cuánto falta?')).resolves.toEqual({say: 'Quedan 10 minutos.'});
-    await expect(assistant.resolve('cancela el temporizador')).resolves.toEqual({say: 'Temporizador cancelado.'});
+    await expect(assistant.resolve('cancela el temporizador')).resolves.toEqual({say: 'Listo.', show: 'Temporizador cancelado.'});
     expect(store.items).toHaveLength(0);
   });
 });
@@ -50,7 +50,7 @@ describe('recordatorios', () => {
   it('crea con fecha y hora', async () => {
     const {store, assistant} = setup();
     const reply = await assistant.resolve('recuérdame llamar a Felipe mañana a las nueve');
-    expect(reply.say).toBe('Listo, te recuerdo mañana a las 9 en punto de la mañana: llamar a Felipe.');
+    expect(reply.show).toBe('Te recuerdo mañana a las 9 en punto de la mañana: llamar a Felipe.');
     expect(store.items[0]).toMatchObject({text: 'llamar a Felipe', at: at(22, 9), kind: 'reminder'});
   });
 
@@ -58,7 +58,7 @@ describe('recordatorios', () => {
     const {store, assistant} = setup();
     await expect(assistant.resolve('Recuérdame mañana de llamar a Felipe')).resolves.toEqual({say: '¿A qué hora?', expectReply: true});
     const reply = await assistant.resolve('a las 10 de la mañana');
-    expect(reply.say).toBe('Listo, te recuerdo mañana a las 10 en punto de la mañana: llamar a Felipe.');
+    expect(reply.show).toBe('Te recuerdo mañana a las 10 en punto de la mañana: llamar a Felipe.');
     expect(store.items[0].at).toBe(at(22, 10));
   });
 
@@ -74,7 +74,7 @@ describe('recordatorios', () => {
     await assistant.resolve('¿Recuérdame el veinte de noviembre que viajo a España?');
     const reply = await assistant.resolve('A las doce de la noche.');
     expect(store.items[0].at).toBe(new Date(2026, 10, 21, 0, 0).getTime());
-    expect(reply.say).toBe('Listo, te recuerdo el sábado 21 de noviembre a las 12 en punto de la madrugada: viajo a España.');
+    expect(reply.show).toBe('Te recuerdo el sábado 21 de noviembre a las 12 en punto de la madrugada: viajo a España.');
   });
 
   it('se puede cancelar la pregunta', async () => {
@@ -93,7 +93,7 @@ describe('recordatorios', () => {
   it('crea una alarma con "despiértame"', async () => {
     const {store, assistant} = setup();
     const reply = await assistant.resolve('despiértame mañana a las seis y media');
-    expect(reply.say).toBe('Listo, alarma para mañana a las 6 y media de la mañana.');
+    expect(reply.show).toBe('Alarma para mañana a las 6 y media de la mañana.');
     expect(store.items[0]).toMatchObject({kind: 'alarm', at: at(22, 6, 30)});
   });
 
@@ -113,7 +113,7 @@ describe('recordatorios', () => {
   it('borra uno específico sin preguntar', async () => {
     const {store, assistant} = setup([{text: 'ir al banco', at: at(23, 17), kind: 'reminder'}, {text: 'dentista', at: at(22, 10), kind: 'reminder'}]);
     const reply = await assistant.resolve('borra el de las cinco');
-    expect(reply.say).toBe('Listo, borré el recordatorio de pasado mañana a las 5 en punto de la tarde, ir al banco.');
+    expect(reply.show).toBe('Borré el recordatorio de pasado mañana a las 5 en punto de la tarde, ir al banco.');
     expect(store.items.map(r => r.text)).toEqual(['dentista']);
   });
 
@@ -122,14 +122,14 @@ describe('recordatorios', () => {
     const question = await assistant.resolve('Borra este recordatorio');
     expect(question.expectReply).toBe(true);
     expect(question.say).toMatch(/^Tienes 2\. ¿Cuál borro\? El primero, mañana/);
-    await expect(assistant.resolve('el segundo')).resolves.toEqual({say: 'Listo, borré el de pasado mañana a las 5 en punto de la tarde, ir al banco.'});
+    await expect(assistant.resolve('el segundo')).resolves.toEqual({say: 'Listo.', show: 'Borré el de pasado mañana a las 5 en punto de la tarde, ir al banco.'});
     expect(store.items.map(r => r.text)).toEqual(['llamar a felipe']);
   });
 
   it('confirma antes de borrar todos', async () => {
     const {store, assistant} = setup([{text: 'a', at: at(22, 9), kind: 'reminder'}, {text: 'b', at: at(23, 9), kind: 'reminder'}]);
     await expect(assistant.resolve('borra todos los recordatorios')).resolves.toEqual({say: '¿Borro tus 2 recordatorios?', expectReply: true});
-    await expect(assistant.resolve('sí')).resolves.toEqual({say: 'Listo, borré todos tus recordatorios.'});
+    await expect(assistant.resolve('sí')).resolves.toEqual({say: 'Listo.', show: 'Borré todos tus recordatorios.'});
     expect(store.items).toHaveLength(0);
   });
 
@@ -165,14 +165,14 @@ describe('música', () => {
 
   it('pone lo pedido y lo confirma', async () => {
     const {calls, assistant} = withMusic();
-    await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Pongo Bohemian Rhapsody, de Queen.'});
+    await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Listo.', show: 'Sonando: Bohemian Rhapsody, de Queen.'});
     expect(calls).toEqual(['play:queen|artist']);
   });
 
   it('avisa si el Echo no está conectado', async () => {
     const {assistant} = withMusic(null);
     const reply = await assistant.resolve('pon Bohemian Rhapsody');
-    expect(reply.say).toBe('Pongo Bohemian Rhapsody, de Queen. El Echo no está conectado, así que suena en el teléfono.');
+    expect(reply.say).toBe('Listo. El Echo no está conectado, así que suena en el teléfono.');
   });
 
   it.each([['pausa', 'pause'], ['siguiente', 'next'], ['anterior', 'previous'], ['sigue con la música', 'play:']])(
@@ -184,8 +184,8 @@ describe('música', () => {
 
   it('ajusta y dice el volumen', async () => {
     const {assistant} = withMusic();
-    await expect(assistant.resolve('sube el volumen')).resolves.toEqual({say: 'Volumen al 50 %.'});
-    await expect(assistant.resolve('volumen a la mitad')).resolves.toEqual({say: 'Volumen al 50 %.'});
+    await expect(assistant.resolve('sube el volumen')).resolves.toEqual({say: 'Listo.', show: 'Volumen al 50 %.'});
+    await expect(assistant.resolve('volumen a la mitad')).resolves.toEqual({say: 'Listo.', show: 'Volumen al 50 %.'});
   });
 
   it('dice qué canción suena', async () => {

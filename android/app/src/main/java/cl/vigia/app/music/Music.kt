@@ -14,6 +14,7 @@ import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.util.Log
 import android.view.KeyEvent
+import cl.vigia.app.MetricsLog
 import androidx.core.app.NotificationManagerCompat
 
 // Música (fase 3, ADR-008): Apple Music se controla por su sesión multimedia, igual que Android Auto o un reloj.
@@ -58,16 +59,24 @@ object Music {
     if (query.isNullOrBlank()) controller.transportControls.play()
     else controller.transportControls.playFromSearch(listOfNotNull(query, artist).joinToString(" "), searchExtras(query, focus, artist))
     val until = SystemClock.elapsedRealtime() + 8000
+    // Sin nada en cola (Apple Music recién abierta tras días sin uso), "reanudar" no hace nada: a los 3 s se pide
+    // una búsqueda vacía, que en Android significa "pon algo" (26 oct).
+    var fallbackAt = if (query.isNullOrBlank()) SystemClock.elapsedRealtime() + 3000 else Long.MAX_VALUE
     while (SystemClock.elapsedRealtime() < until) {
+      if (SystemClock.elapsedRealtime() > fallbackAt && controller.playbackState?.state != PlaybackState.STATE_PLAYING) {
+        controller.transportControls.playFromSearch("", Bundle())
+        fallbackAt = Long.MAX_VALUE
+        MetricsLog.log(context, "music_resume_fallback")
+      }
       val changed = before == null || controller.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE) != before
       if (controller.playbackState?.state == PlaybackState.STATE_PLAYING && changed) {
         SystemClock.sleep(600) // los metadatos llegan un poco después del estado PLAYING
-        Log.i(TAG, "t=${System.currentTimeMillis()} music_play query=${query.orEmpty()} focus=${focus.orEmpty()} artist=${artist.orEmpty()} title=${nowPlaying(context)?.first}")
+        MetricsLog.log(context, "music_play query=${query.orEmpty()} focus=${focus.orEmpty()} artist=${artist.orEmpty()} title=${nowPlaying(context)?.first}")
         return true
       }
       SystemClock.sleep(250)
     }
-    Log.i(TAG, "t=${System.currentTimeMillis()} music_play_failed query=${query.orEmpty()} state=${controller.playbackState?.state}")
+    MetricsLog.log(context, "music_play_failed query=${query.orEmpty()} state=${controller.playbackState?.state}")
     return false
   }
 

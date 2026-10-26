@@ -5,7 +5,8 @@
 
 export type State = 'idle' | 'listening' | 'transcribing' | 'resolving' | 'speaking';
 
-export type Reply = {say: string; expectReply?: boolean};
+// say se dice en voz alta; show (si viene) es lo que queda en pantalla e historial, más detallado ("Listo." / "Sonando: …").
+export type Reply = {say: string; show?: string; expectReply?: boolean};
 
 export type Deps = {
   /** Convierte el texto del comando en una respuesta (en fase 1, solo la hora). */
@@ -78,8 +79,8 @@ export class Orchestrator {
   private async say(reply: Reply): Promise<void> {
     // Respuesta vacía: la acción ya se hizo y no hay nada que decir (por ejemplo, "pausa").
     if (!reply.say) { this.finish(); return; }
-    this.set('speaking', reply.say);
-    this.deps.show(reply.say);
+    this.set('speaking', reply.show ?? reply.say);
+    this.deps.show(reply.show ?? reply.say);
     try {
       await this.deps.speak(reply.say);
     } catch {

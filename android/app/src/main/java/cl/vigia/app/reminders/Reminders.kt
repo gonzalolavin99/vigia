@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import cl.vigia.app.AudioEvents
 import cl.vigia.app.MainActivity
+import cl.vigia.app.MetricsLog
 import cl.vigia.app.voice.Speaker
 
 // Recordatorios, alarmas y temporizadores (ADR-009): SQLite es la fuente de verdad y AlarmManager los hace sonar
@@ -35,8 +36,12 @@ object Reminders {
   @Volatile var lastAnnouncement: String? = null
     private set
 
-  private fun db(context: Context): SQLiteDatabase =
-    (db ?: synchronized(this) { db ?: Db(context.applicationContext).also { db = it } }).writableDatabase
+  private var appContext: Context? = null
+
+  private fun db(context: Context): SQLiteDatabase {
+    appContext = context.applicationContext
+    return (db ?: synchronized(this) { db ?: Db(context.applicationContext).also { db = it } }).writableDatabase
+  }
 
   fun add(context: Context, text: String, at: Long, kind: String): Reminder {
     val id = db(context).insert("reminders", null, ContentValues().apply { put("text", text); put("at", at); put("kind", kind) })
@@ -110,7 +115,9 @@ object Reminders {
     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
   )
 
-  private fun log(event: String) = Log.i(TAG, "t=${System.currentTimeMillis()} $event")
+  private fun log(event: String) {
+    appContext?.let { MetricsLog.log(it, event) } ?: Log.i(TAG, "t=${System.currentTimeMillis()} $event")
+  }
 
   class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

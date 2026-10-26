@@ -185,7 +185,12 @@ function parseMusic(text: string): Intent | null {
   const verb = text.match(PLAY_VERB);
   if (verb) {
     // Qué tipo de cosa se pide: Apple Music confunde artista y canción si no se le dice (22 oct: "a queen").
-    const rest = text.slice(verb.index! + verb[0].length).replace(/^\s*(me|te|puedes|podrias|quiero)\s+/, '').trim();
+    const rest = text.slice(verb.index! + verb[0].length).replace(/^\s*(me|te|puedes|podrias|quiero)\s+/, '')
+      // "en Apple Music" no es parte de lo que se busca; NeMo lo escribe "upp music", "album music"… (26 oct).
+      .replace(/\s*\ben\s+(el\s+)?\w*\s*(music|musik|mius?ic)\b.*$/, '')
+      .trim();
+    // "mi música", "música", "algo": sin nada concreto que buscar.
+    if (/^((mi|la|un poco de|algo de)\s+)?(musica|algo|mis canciones)$/.test(rest)) return {intent: 'musica.reproducir', slots: {}};
     const album = rest.match(/^(el\s+|un\s+)?(album|disco)\s+(.+)$/);
     if (album) return {intent: 'musica.reproducir', slots: {query: album[3], focus: 'album'}};
     const song = rest.match(/^(la\s+)?(cancion|tema)\s+(.+)$/);

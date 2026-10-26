@@ -93,6 +93,10 @@
 {"text": "reproduce a Queen", "intent": "musica.reproducir", "slots": {"query": "queen", "focus": "artist"}, "source": "nemo", "split": "dev"}
 {"text": "Pon bohemia en Rhapsody.", "intent": "musica.reproducir", "slots": {"query": "bohemia en rhapsody"}, "source": "nemo", "split": "test"}
 {"text": "pon canciones de Shakira", "intent": "musica.reproducir", "slots": {"query": "shakira", "focus": "artist"}, "source": "yo", "split": "dev"}
+{"text": "Puede reproducir mi música en Upp Music?", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "¿Puedes reproducir música?", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "dev"}
+{"text": "Puedes reproducir a Queen en Album Music?", "intent": "musica.reproducir", "slots": {"query": "queen", "focus": "artist"}, "source": "nemo", "split": "test"}
+{"text": "pon Coldplay en Apple Music", "intent": "musica.reproducir", "slots": {"query": "coldplay"}, "source": "yo", "split": "dev"}
 {"text": "pausa", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "pausa la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "test"}
 {"text": "detén la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}

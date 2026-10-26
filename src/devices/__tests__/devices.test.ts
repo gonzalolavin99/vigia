@@ -95,9 +95,9 @@ describe('Home.resolveLights', () => {
 describe('WiZ', () => {
   it('prende, atenúa y cambia el tono por UDP', async () => {
     const {net, assistant} = setup();
-    await expect(assistant.resolve('prende la luz del living')).resolves.toEqual({say: 'Listo, prendí la luz living.'});
+    await expect(assistant.resolve('prende la luz del living')).resolves.toEqual({say: 'Listo.', show: 'Prendí la luz living.'});
     expect(net.bulbs.get('10.0.0.37')!.state).toBe(true);
-    await expect(assistant.resolve('pon la luz del living al 30 por ciento')).resolves.toEqual({say: 'Listo, la luz living al 30 %.'});
+    await expect(assistant.resolve('pon la luz del living al 30 por ciento')).resolves.toEqual({say: 'Listo.', show: 'La luz living al 30 %.'});
     expect(net.bulbs.get('10.0.0.37')!.dimming).toBe(30);
     await assistant.resolve('luz fría en el living');
     expect(net.bulbs.get('10.0.0.37')!.temp).toBe(6500);
@@ -106,14 +106,14 @@ describe('WiZ', () => {
   it('"apaga todo" apaga las 3 luces', async () => {
     const {net, assistant} = setup();
     net.bulbs.forEach(b => (b.state = true));
-    await expect(assistant.resolve('apaga todo')).resolves.toEqual({say: 'Listo, apagué las 3 luces de la casa.'});
+    await expect(assistant.resolve('apaga todo')).resolves.toEqual({say: 'Listo.', show: 'Apagué las 3 luces de la casa.'});
     expect([...net.bulbs.values()].every(b => !b.state)).toBe(true);
   });
 
   it('pregunta cuál luz si no se dice', async () => {
     const {net, assistant} = setup();
     await expect(assistant.resolve('prende la luz')).resolves.toEqual({say: '¿Cuál luz? Tengo cocina, pasillo, living.', expectReply: true});
-    await expect(assistant.resolve('la del pasillo')).resolves.toEqual({say: 'Listo, prendí la luz pasillo.'});
+    await expect(assistant.resolve('la del pasillo')).resolves.toEqual({say: 'Listo.', show: 'Prendí la luz pasillo.'});
     expect(net.bulbs.get('10.0.0.35')!.state).toBe(true);
   });
 
@@ -122,7 +122,7 @@ describe('WiZ', () => {
     const bulb = net.bulbs.get('10.0.0.34')!;
     net.bulbs.delete('10.0.0.34');
     net.bulbs.set('10.0.0.99', bulb);
-    await expect(assistant.resolve('prende la luz de la cocina')).resolves.toEqual({say: 'Listo, prendí la luz cocina.'});
+    await expect(assistant.resolve('prende la luz de la cocina')).resolves.toEqual({say: 'Listo.', show: 'Prendí la luz cocina.'});
     expect(bulb.state).toBe(true);
     expect(net.udpSent.some(s => s.host === '10.0.0.255')).toBe(true);
   });
@@ -131,14 +131,14 @@ describe('WiZ', () => {
     const {net, assistant} = setup();
     net.bulbs.delete('10.0.0.35');
     const reply = await assistant.resolve('prende las luces de la cocina');
-    expect(reply.say).toBe('Listo, prendí las 2 luces de la cocina, pero no pude con luz pasillo.');
+    expect(reply.say).toBe('Prendí las 2 luces de la cocina, pero no pude con luz pasillo.');
   });
 });
 
 describe('TV Samsung', () => {
   it('se empareja la primera vez y guarda el token', async () => {
     const {net, assistant} = setup();
-    await expect(assistant.resolve('apaga la tele')).resolves.toEqual({say: 'Listo, apagué la tele.'});
+    await expect(assistant.resolve('apaga la tele')).resolves.toEqual({say: 'Listo.', show: 'Apagué la tele.'});
     expect(net.keys).toEqual(['KEY_POWER']);
     expect(net.kv.get('samsung-token-04:E4:B6:00:00:01')).toBe('T123');
   });
@@ -146,7 +146,7 @@ describe('TV Samsung', () => {
   it('enciende desde apagada con Wake-on-LAN', async () => {
     const {net, assistant} = setup();
     net.tvState = 'off';
-    await expect(assistant.resolve('prende la tele')).resolves.toEqual({say: 'Listo, prendí la tele.'});
+    await expect(assistant.resolve('prende la tele')).resolves.toEqual({say: 'Listo.', show: 'Prendí la tele.'});
     expect(net.wol).toEqual(['04:E4:B6:00:00:01']);
     expect(net.tvState).toBe('on');
   });

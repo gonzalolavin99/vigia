@@ -90,7 +90,7 @@ export class Assistant {
 
       case 'temporizador.crear': {
         await this.store.add({text: 'temporizador', at: now.getTime() + slots.seconds! * 1000, kind: 'timer'});
-        return {say: `Listo, temporizador de ${duracionFrase(slots.seconds!)}.`};
+        return done(`Temporizador de ${duracionFrase(slots.seconds!)}.`);
       }
 
       case 'temporizador.consultar': {
@@ -103,7 +103,7 @@ export class Assistant {
         const timers = (await this.store.list()).filter(r => r.kind === 'timer');
         if (!timers.length) return {say: 'No tienes temporizadores corriendo.'};
         await Promise.all(timers.map(t => this.store.remove(t.id)));
-        return {say: timers.length === 1 ? 'Temporizador cancelado.' : `Cancelé ${timers.length} temporizadores.`};
+        return done(timers.length === 1 ? 'Temporizador cancelado.' : `Cancelé ${timers.length} temporizadores.`);
       }
 
       case 'recordatorio.crear':
@@ -156,10 +156,11 @@ export class Assistant {
         const ok = await music.play(search);
         if (!ok) return {say: slots.query ? `No pude poner ${slots.query} en Apple Music.` : 'No pude retomar la música en Apple Music.'};
         const where = (await music.speaker()) ? '' : ' El Echo no está conectado, así que suena en el teléfono.';
-        if (!slots.query) return {say: where.trim()};
-        // Se dice lo que de verdad sonó: si Apple Music entendió otra cosa, se nota al tiro (22 oct: "Killer Queen").
+        // En pantalla queda lo que de verdad sonó: si Apple Music entendió otra cosa, se nota (22 oct: "Killer Queen").
         const song = await music.nowPlaying();
-        return {say: `${song ? `Pongo ${song.title}, de ${song.artist}.` : `Pongo ${slots.query}.`}${where}`};
+        const playing = song ? `Sonando: ${song.title}, de ${song.artist}.` : 'Sonando en Apple Music.';
+        if (!slots.query && !where) return {say: '', show: playing};
+        return {say: `Listo.${where}`, show: `${playing}${where}`};
       }
       case 'musica.pausar': await music.pause(); return {say: ''};
       case 'musica.continuar': {
@@ -172,9 +173,9 @@ export class Assistant {
         const song = await music.nowPlaying();
         return {say: song ? `Es ${song.title}, de ${song.artist}.` : 'No está sonando nada en Apple Music.'};
       }
-      case 'volumen.subir': return {say: `Volumen al ${await music.volume({by: 'up'})} %.`};
-      case 'volumen.bajar': return {say: `Volumen al ${await music.volume({by: 'down'})} %.`};
-      default: return {say: `Volumen al ${await music.volume({percent: slots.percent ?? 50})} %.`};
+      case 'volumen.subir': return done(`Volumen al ${await music.volume({by: 'up'})} %.`);
+      case 'volumen.bajar': return done(`Volumen al ${await music.volume({by: 'down'})} %.`);
+      default: return done(`Volumen al ${await music.volume({percent: slots.percent ?? 50})} %.`);
     }
   }
 
@@ -196,11 +197,11 @@ export class Assistant {
     if (intent === 'luz.encender' || intent === 'luz.apagar') {
       const on = intent === 'luz.encender';
       outcome = await home.setLights(devices, (a, d) => a.setPower(d, on));
-      done = `Listo, ${on ? 'prendí' : 'apagué'} ${what}.`;
+      done = `${on ? 'Prendí' : 'Apagué'} ${what}.`;
     } else if (intent === 'luz.tono') {
       const kelvin = {calida: 2700, neutra: 4000, fria: 6500}[slots.tone ?? 'neutra'];
       outcome = await home.setLights(devices, (a, d) => a.setWhite(d, kelvin));
-      done = `Listo, luz ${slots.tone === 'fria' ? 'fría' : slots.tone === 'calida' ? 'cálida' : 'neutra'} en ${what}.`;
+      done = `Luz ${slots.tone === 'fria' ? 'fría' : slots.tone === 'calida' ? 'cálida' : 'neutra'} en ${what}.`;
     } else {
       let percent = slots.percent;
       if (percent === undefined) {
@@ -210,9 +211,9 @@ export class Assistant {
       }
       const target = percent;
       outcome = await home.setLights(devices, (a, d) => a.setBrightness(d, target));
-      done = `Listo, ${what} al ${target} %.`;
+      done = `${capitalize(what)} al ${target} %.`;
     }
-    if (!outcome.failed.length) return {say: done};
+    if (!outcome.failed.length) return {say: 'Listo.', show: done};
     const failedNames = outcome.failed.map(e => e.device.name).join(', ');
     return {say: outcome.done.length ? `${done.replace(/\.$/, '')}, pero no pude con ${failedNames}.` : `No pude comunicarme con ${failedNames}. ¿Está conectada a la red?`};
   }
@@ -221,8 +222,8 @@ export class Assistant {
     const home = await this.home();
     if (!home?.television) return {say: 'Todavía no tengo la tele configurada.'};
     try {
-      if (intent === 'tv.encender') { await home.tvPower(true); return {say: 'Listo, prendí la tele.'}; }
-      if (intent === 'tv.apagar') { await home.tvPower(false); return {say: 'Listo, apagué la tele.'}; }
+      if (intent === 'tv.encender') { await home.tvPower(true); return done('Prendí la tele.'); }
+      if (intent === 'tv.apagar') { await home.tvPower(false); return done('Apagué la tele.'); }
       if (intent === 'tv.silencio') { await home.tvKey('KEY_MUTE'); return {say: ''}; }
       await home.tvKey(slots.by === 'down' ? 'KEY_VOLDOWN' : 'KEY_VOLUP', 3);
       return {say: ''};
@@ -271,7 +272,8 @@ export class Assistant {
     if (at.getTime() <= this.now().getTime()) return {say: 'Esa hora ya pasó. ¿Me lo repites con otra hora?'};
     await this.store.add({text, at: at.getTime(), kind});
     const cuando = `${cuandoFrase(at, this.now())} a ${horaFrase(at)}`;
-    return {say: kind === 'alarm' ? `Listo, alarma para ${cuando}.` : `Listo, te recuerdo ${cuando}: ${text}.`};
+    // Se dice solo cuándo (una hora mal entendida cuesta caro); el texto completo queda en pantalla.
+    return {say: `Listo, ${cuando}.`, show: kind === 'alarm' ? `Alarma para ${cuando}.` : `Te recuerdo ${cuando}: ${text}.`};
   }
 
   private async listReminders(range: 'all' | 'today' | 'tomorrow' | 'week' | 'month'): Promise<Reply> {
@@ -291,7 +293,7 @@ export class Assistant {
       return this.ask(`¿Borro tus ${all.length} recordatorios?`, async answer => {
         if (!YES.test(normalize(answer))) return null;
         await Promise.all(all.map(r => this.store.remove(r.id)));
-        return {say: 'Listo, borré todos tus recordatorios.'};
+        return done('Borré todos tus recordatorios.');
       });
     }
     const matches = all.filter(r => {
@@ -305,13 +307,13 @@ export class Assistant {
     const specific = slots.date || slots.time || slots.text;
     if (matches.length === 1 && specific) {
       await this.store.remove(matches[0].id);
-      return {say: `Listo, borré el recordatorio de ${this.describe(matches[0])}.`};
+      return done(`Borré el recordatorio de ${this.describe(matches[0])}.`);
     }
     if (matches.length === 1) {
       return this.ask(`¿Borro el recordatorio de ${this.describe(matches[0])}?`, async answer => {
         if (!YES.test(normalize(answer))) return null;
         await this.store.remove(matches[0].id);
-        return {say: 'Listo, lo borré.'};
+        return done('Lo borré.');
       });
     }
     const options = matches.slice(0, MAX_READ);
@@ -324,7 +326,7 @@ export class Assistant {
         : options.find(r => spoken.length > 3 && normalize(this.describe(r)).includes(spoken.replace(/^(el|la)\s+(de\s+)?/, '')));
       if (!chosen) return null;
       await this.store.remove(chosen.id);
-      return {say: `Listo, borré el de ${this.describe(chosen)}.`};
+      return done(`Borré el de ${this.describe(chosen)}.`);
     });
   }
 
@@ -354,4 +356,9 @@ async function brightnessOf(home: Home, device: Parameters<Home['setLights']>[0]
   let value: number | null = null;
   await home.setLights([device], async (adapter, d) => { value = await adapter.brightness(d); });
   return value;
+}
+
+/** Acción hecha: en voz solo "Listo."; el detalle queda en pantalla (pedido de Gonzalo, 26 oct). */
+function done(detail: string): Reply {
+  return {say: 'Listo.', show: detail};
 }
