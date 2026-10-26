@@ -30,3 +30,8 @@ Probado en el Realme con Apple Music 6.5.3:
 
 Obtener la sesión de otra app exige "Acceso a notificaciones". Gonzalo lo autorizó el 22 oct solo para esto; `MediaListener` no lee ni guarda notificaciones. La búsqueda lleva los mismos extras que Google Assistant (`EXTRA_MEDIA_FOCUS`, artista, título, álbum) y la respuesta dice lo que de verdad empezó a sonar.
 
+
+## Actualización 26 oct: biblioteca y nombres en inglés
+
+- La biblioteca de Gonzalo no es accesible desde otra app: `MediaBrowser` hacia Apple Music es rechazado y las búsquedas ("mi biblioteca", "my library", "mis canciones") y enlaces (`music.apple.com/library/...`) reproducen del catálogo. "Pon mi música" reanuda lo último que sonó; si no hay cola, pide una búsqueda vacía.
+- Los nombres en inglés que NeMo transcribe como suenan se corrigen contra una lista de artistas (semilla + los que ya sonaron), por parecido de letras; siglas como "MGK" admiten una letra mal oída (`src/nlu/artists.ts`).

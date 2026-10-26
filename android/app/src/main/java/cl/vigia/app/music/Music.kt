@@ -51,6 +51,9 @@ object Music {
     return null
   }
 
+  /** Solo para LibraryProbe (diagnóstico por ADB). */
+  fun controllerForProbe(context: Context) = sessionOrLaunch(context)
+
   /** Con query busca y reproduce; sin query reanuda. Espera hasta 8 s a que suene. Bloquea: llamar fuera del hilo principal. */
   fun play(context: Context, query: String?, focus: String? = null, artist: String? = null): Boolean {
     val controller = sessionOrLaunch(context) ?: return mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY).let { false }

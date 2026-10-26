@@ -19,6 +19,8 @@
       android:supportsRtl="true">
       <service android:name=".audio.VoiceService" android:exported="false" android:foregroundServiceType="microphone" />
       <receiver android:name=".reminders.Reminders$ReminderReceiver" android:exported="false" />
+      <!-- Diagnóstico solo por ADB: DUMP lo tiene el shell, ninguna app instalada. -->
+      <receiver android:name=".music.LibraryProbe" android:exported="true" android:permission="android.permission.DUMP" />
       <!-- Solo para obtener la sesión de Apple Music (fase 3, ADR-008); no lee notificaciones. -->
       <service
         android:name=".music.MediaListener"

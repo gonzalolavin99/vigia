@@ -65,6 +65,10 @@ export class Home {
     await this.tv.key(this.requireTv(), key, times);
   }
 
+  async tvPair(): Promise<void> {
+    await this.tv.pair(this.requireTv());
+  }
+
   private requireTv(): DeviceConfig {
     const tv = this.television;
     if (!tv) throw new Error('No hay TV configurada');

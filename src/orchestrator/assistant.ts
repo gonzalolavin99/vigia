@@ -1,5 +1,6 @@
 import {DeviceError} from '../devices/types';
 import {describeLights, Home} from '../devices/home';
+import {correctArtist, SEED_ARTISTS} from '../nlu/artists';
 import {Intent, parseIntent} from '../nlu/intents';
 import {normalize} from '../nlu/normalize';
 import {addDays, defaultDate, isoDate, parseWhen} from '../nlu/when';
@@ -34,6 +35,9 @@ export interface MusicPlayer {
   nowPlaying(): Promise<{title: string; artist: string} | null>;
   /** Nombre del parlante Bluetooth conectado, o null si suena en el teléfono. */
   speaker(): Promise<string | null>;
+  /** Artistas que ya sonaron en Apple Music (para corregir nombres en inglés mal transcritos). */
+  knownArtists(): Promise<string[]>;
+  rememberArtist(name: string): void;
 }
 
 export const NOT_UNDERSTOOD = 'No te entendí bien. Puedo decirte la hora, la fecha y el clima, poner temporizadores, recordatorios y música, y manejar las luces y la tele.';
@@ -136,6 +140,7 @@ export class Assistant {
       case 'tv.apagar':
       case 'tv.volumen':
       case 'tv.silencio':
+      case 'tv.conectar':
         return this.handleTv(intent, slots);
 
       case 'clima':
@@ -152,12 +157,18 @@ export class Assistant {
     if (!music) return {say: 'La música todavía no está disponible.'};
     switch (intent) {
       case 'musica.reproducir': {
-        const search = slots.query ? {query: slots.query, focus: slots.focus, artist: slots.artist} : undefined;
+        // Nombres en inglés que NeMo escribe como suenan ("Machine Ganchelli") se corrigen al artista conocido más parecido.
+        const known = [...new Set([...(await music.knownArtists()), ...SEED_ARTISTS])];
+        const corrected = slots.query && slots.focus !== 'song' && slots.focus !== 'album'
+          ? correctArtist(slots.query, known, slots.focus === 'artist') : null;
+        const search = corrected ? {query: corrected, focus: 'artist' as const}
+          : slots.query ? {query: slots.query, focus: slots.focus, artist: slots.artist} : undefined;
         const ok = await music.play(search);
         if (!ok) return {say: slots.query ? `No pude poner ${slots.query} en Apple Music.` : 'No pude retomar la música en Apple Music.'};
         const where = (await music.speaker()) ? '' : ' El Echo no está conectado, así que suena en el teléfono.';
         // En pantalla queda lo que de verdad sonó: si Apple Music entendió otra cosa, se nota (22 oct: "Killer Queen").
         const song = await music.nowPlaying();
+        if (song) music.rememberArtist(song.artist);
         const playing = song ? `Sonando: ${song.title}, de ${song.artist}.` : 'Sonando en Apple Music.';
         if (!slots.query && !where) return {say: '', show: playing};
         return {say: `Listo.${where}`, show: `${playing}${where}`};
@@ -225,9 +236,16 @@ export class Assistant {
       if (intent === 'tv.encender') { await home.tvPower(true); return done('Prendí la tele.'); }
       if (intent === 'tv.apagar') { await home.tvPower(false); return done('Apagué la tele.'); }
       if (intent === 'tv.silencio') { await home.tvKey('KEY_MUTE'); return {say: ''}; }
+      if (intent === 'tv.conectar') { await home.tvPair(); return done('Conectado con la tele.'); }
       await home.tvKey(slots.by === 'down' ? 'KEY_VOLDOWN' : 'KEY_VOLUP', 3);
       return {say: ''};
     } catch (error) {
+      if (error instanceof DeviceError && error.reason === 'unpaired') {
+        return {say: 'Primero tengo que conectarme con la tele. Préndela con el control y dime: Alfred, conecta la tele.'};
+      }
+      if (error instanceof DeviceError && error.reason === 'unreachable' && intent === 'tv.conectar') {
+        return {say: 'La tele tiene que estar prendida para conectarme. Préndela con el control y vuelve a pedírmelo.'};
+      }
       if (error instanceof DeviceError && error.reason === 'unauthorized') return {say: 'La tele no me dio permiso. Acepta el aviso de Vigía en la pantalla de la tele y vuelve a pedírmelo.'};
       if (error instanceof DeviceError && error.reason === 'unreachable') {
         return {say: intent === 'tv.encender'

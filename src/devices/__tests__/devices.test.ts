@@ -143,8 +143,23 @@ describe('TV Samsung', () => {
     expect(net.kv.get('samsung-token-04:E4:B6:00:00:01')).toBe('T123');
   });
 
+  it('sin emparejar, encender responde al tiro cómo conectarse (26 oct: quedaba pensando)', async () => {
+    const {net, assistant} = setup();
+    net.tvState = 'standby';
+    const reply = await assistant.resolve('enciende televisión');
+    expect(reply.say).toMatch(/^Primero tengo que conectarme con la tele/);
+    expect(net.keys).toEqual([]);
+  });
+
+  it('«conecta la tele» empareja con la tele encendida', async () => {
+    const {net, assistant} = setup();
+    await expect(assistant.resolve('conecta la tele')).resolves.toEqual({say: 'Listo.', show: 'Conectado con la tele.'});
+    expect(net.kv.get('samsung-token-04:E4:B6:00:00:01')).toBe('T123');
+  });
+
   it('enciende desde apagada con Wake-on-LAN', async () => {
     const {net, assistant} = setup();
+    net.kv.set('samsung-token-04:E4:B6:00:00:01', 'T123');
     net.tvState = 'off';
     await expect(assistant.resolve('prende la tele')).resolves.toEqual({say: 'Listo.', show: 'Prendí la tele.'});
     expect(net.wol).toEqual(['04:E4:B6:00:00:01']);

@@ -40,10 +40,11 @@ export interface LightAdapter {
 export interface TvAdapter {
   power(device: DeviceConfig, on: boolean): Promise<void>;
   key(device: DeviceConfig, key: 'KEY_VOLUP' | 'KEY_VOLDOWN' | 'KEY_MUTE', times?: number): Promise<void>;
+  pair(device: DeviceConfig): Promise<void>;
 }
 
 export class DeviceError extends Error {
-  constructor(readonly device: DeviceConfig, readonly reason: 'unreachable' | 'unauthorized' | 'failed') {
+  constructor(readonly device: DeviceConfig, readonly reason: 'unreachable' | 'unauthorized' | 'unpaired' | 'failed') {
     super(`${device.name}: ${reason}`);
   }
 }

@@ -13,3 +13,7 @@ Adaptador Samsung que envía teclas (apagar, volumen, silencio, entrada) y abre 
 ## Consecuencias
 
 Control local sin cuenta. Si la TV no despierta por red, la alternativa es la API de SmartThings con token personal, que pasa por la nube.
+
+## Actualización 26 oct: encender desde reposo
+
+Probado con la QN50Q8F: Wake-on-LAN no la saca de reposo (sigue en "standby" 18 s después), y en reposo una conexión sin token no recibe respuesta porque espera que se acepte el aviso con la pantalla apagada. Vigía responde al tiro que hay que emparejar ("Alfred, conecta la tele" con la TV encendida) en vez de esperar 30 s. Pendiente: confirmar que con token la tecla de encendido funciona en reposo; si no, la alternativa es SmartThings (nube), como usa Alexa.

@@ -37,7 +37,7 @@ export type IntentName =
   | 'musica.reproducir' | 'musica.pausar' | 'musica.continuar' | 'musica.siguiente' | 'musica.anterior' | 'musica.que_suena'
   | 'volumen.subir' | 'volumen.bajar' | 'volumen.fijar'
   | 'luz.encender' | 'luz.apagar' | 'luz.brillo' | 'luz.tono'
-  | 'tv.encender' | 'tv.apagar' | 'tv.volumen' | 'tv.silencio'
+  | 'tv.encender' | 'tv.apagar' | 'tv.volumen' | 'tv.silencio' | 'tv.conectar'
   | 'clima'
   | 'desconocido';
 
@@ -152,7 +152,7 @@ export function original(raw: string, normalized: string): string {
   return normalized;
 }
 
-const PLAY_VERB = /\b(pon|ponme|poner|pones|reproduce|reproducir|reproduceme|toca|tocar|escuchar)\b/;
+const PLAY_VERB = /\b(pon|ponme|poner|pones|reproduce|reproducen|reproducir|reproduceme|toca|tocar|escuchar)\b/;
 // Lo que sobra entre el verbo y lo que se quiere escuchar: "pon música de Queen" → "queen".
 const QUERY_LEADING = /^((me|te|puedes|podrias|quiero|un|poco|algo|musica|canciones|cancion|una|el|la|los|las|album|disco|de|del|tema)\s+)+/;
 
@@ -187,7 +187,7 @@ function parseMusic(text: string): Intent | null {
     // Qué tipo de cosa se pide: Apple Music confunde artista y canción si no se le dice (22 oct: "a queen").
     const rest = text.slice(verb.index! + verb[0].length).replace(/^\s*(me|te|puedes|podrias|quiero)\s+/, '')
       // "en Apple Music" no es parte de lo que se busca; NeMo lo escribe "upp music", "album music"… (26 oct).
-      .replace(/\s*\ben\s+(el\s+)?\w*\s*(music|musik|mius?ic)\b.*$/, '')
+      .replace(/\s*\b(en\s+)?(el\s+)?\w*\s*(music|musik|mius?ic)\b.*$/, '')
       .trim();
     // "mi música", "música", "algo": sin nada concreto que buscar.
     if (/^((mi|la|un poco de|algo de)\s+)?(musica|algo|mis canciones)$/.test(rest)) return {intent: 'musica.reproducir', slots: {}};
@@ -214,6 +214,7 @@ const TURN_OFF = /\b(apaga|apagar|apagame)\b/;
 /** Luces, TV y clima: "prende la luz del living", "apaga todo", "luz al 30", "apaga la tele", "¿cuántos grados hay?". */
 function parseDevices(text: string): Intent | null {
   if (TV.test(text)) {
+    if (/\b(conecta|conectate|empareja|emparejate|vincula|vinculate)\b/.test(text)) return {intent: 'tv.conectar', slots: {}};
     if (/\b(silencia|silenciar|mute|quita el sonido|sin sonido)\b/.test(text)) return {intent: 'tv.silencio', slots: {}};
     if (/\b(sube|subele|subir)\b/.test(text)) return {intent: 'tv.volumen', slots: {by: 'up'}};
     if (/\b(baja|bajale|bajar)\b/.test(text)) return {intent: 'tv.volumen', slots: {by: 'down'}};

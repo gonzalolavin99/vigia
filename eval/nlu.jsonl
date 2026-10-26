@@ -97,6 +97,9 @@
 {"text": "¿Puedes reproducir música?", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "dev"}
 {"text": "Puedes reproducir a Queen en Album Music?", "intent": "musica.reproducir", "slots": {"query": "queen", "focus": "artist"}, "source": "nemo", "split": "test"}
 {"text": "pon Coldplay en Apple Music", "intent": "musica.reproducir", "slots": {"query": "coldplay"}, "source": "yo", "split": "dev"}
+{"text": "Reproducen música Naple Music.", "intent": "musica.reproducir", "slots": {}, "source": "nemo", "split": "test"}
+{"text": "Reproduce a Md. K.", "intent": "musica.reproducir", "slots": {"query": "md k", "focus": "artist"}, "source": "nemo", "split": "dev"}
+{"text": "reproduce a Machine Ganchelli?", "intent": "musica.reproducir", "slots": {"query": "machine ganchelli", "focus": "artist"}, "source": "nemo", "split": "test"}
 {"text": "pausa", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "pausa la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "test"}
 {"text": "detén la música", "intent": "musica.pausar", "slots": {}, "source": "yo", "split": "dev"}
@@ -142,6 +145,8 @@
 {"text": "sube el volumen de la tele", "intent": "tv.volumen", "slots": {"by": "up"}, "source": "yo", "split": "dev"}
 {"text": "baja la tele", "intent": "tv.volumen", "slots": {"by": "down"}, "source": "yo", "split": "test"}
 {"text": "silencia la tele", "intent": "tv.silencio", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "conecta la tele", "intent": "tv.conectar", "slots": {}, "source": "yo", "split": "dev"}
+{"text": "enciende televisión.", "intent": "tv.encender", "slots": {}, "source": "nemo", "split": "dev"}
 {"text": "¿qué temperatura hace afuera?", "intent": "clima", "slots": {}, "source": "yo", "split": "dev"}
 {"text": "¿cuántos grados hay?", "intent": "clima", "slots": {}, "source": "yo", "split": "test"}
 {"text": "¿qué temperatura hay en la pieza?", "intent": "clima", "slots": {"inside": true}, "source": "yo", "split": "dev"}

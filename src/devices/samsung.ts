@@ -16,6 +16,8 @@ export class SamsungAdapter implements TvAdapter {
     if (on) {
       if (state === 'on') return;
       // En reposo de red la TV aún acepta teclas: KEY_POWER la enciende. Apagada del todo, solo despierta por WoL.
+      // Sin emparejar, la TV en reposo no responde (espera que alguien acepte el aviso con la pantalla apagada).
+      if (!(await this.paired(device))) throw new DeviceError(device, 'unpaired');
       if (state === 'standby') { await this.send(device, ['KEY_POWER']); return; }
       await this.net.wakeOnLan(device.mac);
       for (let i = 0; i < 10; i++) {
@@ -28,6 +30,16 @@ export class SamsungAdapter implements TvAdapter {
     }
     if (state !== 'on') return;
     await this.send(device, ['KEY_POWER']);
+  }
+
+  /** Emparejar a propósito ("conecta la tele"): con la TV encendida aparece el aviso para aceptar. */
+  async pair(device: DeviceConfig): Promise<void> {
+    if ((await this.state(device)) !== 'on') throw new DeviceError(device, 'unreachable');
+    await this.send(device, []);
+  }
+
+  async paired(device: DeviceConfig): Promise<boolean> {
+    return (await this.net.kvGet(`samsung-token-${device.mac}`)) !== null;
   }
 
   async key(device: DeviceConfig, key: 'KEY_VOLUP' | 'KEY_VOLDOWN' | 'KEY_MUTE', times = 1): Promise<void> {

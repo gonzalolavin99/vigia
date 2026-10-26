@@ -22,6 +22,14 @@ const nativeMusic: MusicPlayer = {
   volume: change => VigiaAudio.musicVolume(change),
   nowPlaying: () => VigiaAudio.musicNowPlaying(),
   speaker: () => VigiaAudio.musicSpeaker(),
+  // Hasta 300 artistas que ya sonaron, guardados en el teléfono.
+  knownArtists: async () => JSON.parse((await VigiaAudio.kvGet('known-artists')) ?? '[]'),
+  rememberArtist: name => {
+    VigiaAudio.kvGet('known-artists').then(raw => {
+      const list: string[] = JSON.parse(raw ?? '[]');
+      if (!list.includes(name)) VigiaAudio.kvSet('known-artists', JSON.stringify([name, ...list].slice(0, 300)));
+    });
+  },
 };
 // Red de Android para los adaptadores de dispositivos (ADR-020).
 const nativeNet: Net = {

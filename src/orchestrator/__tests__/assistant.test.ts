@@ -159,6 +159,8 @@ describe('música', () => {
       },
       nowPlaying: async () => ({title: 'Bohemian Rhapsody', artist: 'Queen'}),
       speaker: async () => speaker,
+      knownArtists: async () => [],
+      rememberArtist: (name: string) => { calls.push(`remember:${name}`); },
     };
     return {calls, assistant: new Assistant(new MemoryStore(), () => NOW, music)};
   }
@@ -166,7 +168,13 @@ describe('música', () => {
   it('pone lo pedido y lo confirma', async () => {
     const {calls, assistant} = withMusic();
     await expect(assistant.resolve('pon música de Queen')).resolves.toEqual({say: 'Listo.', show: 'Sonando: Bohemian Rhapsody, de Queen.'});
-    expect(calls).toEqual(['play:queen|artist']);
+    expect(calls).toEqual(['play:Queen|artist', 'remember:Queen']);
+  });
+
+  it('corrige un nombre en inglés mal transcrito (caso real, 26 oct)', async () => {
+    const {calls, assistant} = withMusic();
+    await assistant.resolve('reproduce a Machine Ganchelli');
+    expect(calls[0]).toBe('play:Machine Gun Kelly|artist');
   });
 
   it('avisa si el Echo no está conectado', async () => {
