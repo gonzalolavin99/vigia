@@ -31,6 +31,7 @@ type VigiaAudioModule = {
   netWakeOnLan(mac: string): Promise<boolean>;
   netWs(url: string, messages: string[], waitMs: number, insecureLocal: boolean): Promise<string[]>;
   netHttpGet(url: string, waitMs: number, insecureLocal: boolean): Promise<string | null>;
+  netHttpPost(url: string, json: string, headers: Record<string, string>, connectMs: number, totalMs: number): Promise<{status: number; body: string} | null>;
   readConfig(): Promise<string | null>;
   kvGet(key: string): Promise<string | null>;
   kvSet(key: string, value: string): void;

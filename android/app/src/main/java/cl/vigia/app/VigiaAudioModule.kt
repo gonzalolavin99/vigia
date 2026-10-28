@@ -125,6 +125,12 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
     Arguments.createArray().apply { Net.wsExchange(url, list, waitMs.toLong(), insecureLocal).forEach { pushString(it) } }
   }
   @ReactMethod fun netHttpGet(url: String, waitMs: Double, insecureLocal: Boolean, promise: Promise) = background(promise, "NET_HTTP") { Net.httpGet(url, waitMs.toLong(), insecureLocal) }
+  @ReactMethod fun netHttpPost(url: String, json: String, headers: ReadableMap, connectMs: Double, totalMs: Double, promise: Promise) = background(promise, "NET_POST") {
+    val map = headers.toHashMap().mapValues { it.value.toString() }
+    Net.httpPost(url, json, map, connectMs.toLong(), totalMs.toLong())?.let { (code, body) ->
+      Arguments.createMap().apply { putInt("status", code); putString("body", body) }
+    }
+  }
   @ReactMethod fun readConfig(promise: Promise) = background(promise, "CONFIG") { Net.readConfig(context) }
   // Valores pequeños que TS necesita guardar (por ejemplo, el token de la TV).
   @ReactMethod fun kvGet(key: String, promise: Promise) { promise.resolve(context.getSharedPreferences("vigia-kv", 0).getString(key, null)) }

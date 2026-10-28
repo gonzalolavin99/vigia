@@ -14,7 +14,9 @@ export type DeviceConfig = {
   groups: string[];
 };
 
-export type HomeConfig = {latitude: number; longitude: number; place?: string; devices: DeviceConfig[]};
+export type HomeConfig = {latitude: number; longitude: number; place?: string; devices: DeviceConfig[];
+  /** Puente LLM del PC (fase 5); sin él, Vigía funciona solo con reglas. */
+  bridge?: {url: string; token: string}};
 
 /** Red genérica que entrega Android (ADR-020); en las pruebas se reemplaza por una falsa. */
 export interface Net {

@@ -1,7 +1,9 @@
 import {DeviceError} from '../devices/types';
 import {describeLights, Home} from '../devices/home';
 import {correctArtist, SEED_ARTISTS} from '../nlu/artists';
-import {Intent, parseIntent} from '../nlu/intents';
+import {Intent, IntentName, parseIntent, Slots} from '../nlu/intents';
+import type {ChatTurn, LlmClient} from '../llm/bridge';
+import {TOOLS} from '../llm/tools';
 import {normalize} from '../nlu/normalize';
 import {addDays, defaultDate, isoDate, parseWhen} from '../nlu/when';
 import {cuandoFrase, decirHora, duracionFrase, fechaFrase, horaFrase, toDate} from '../skills/say';
@@ -57,9 +59,20 @@ export class Assistant {
     private readonly music: MusicPlayer | null = null,
     /** La casa (luces, TV, clima) se carga de home.json; null si aún no hay configuración. */
     private readonly home: () => Promise<Home | null> = async () => null,
+    /** Puente LLM del PC (fase 5); null si no está configurado. */
+    private readonly llm: () => Promise<LlmClient | null> = async () => null,
   ) {}
 
+  // Conversación reciente que se le pasa al LLM (modo charla con historial corto, fase 5).
+  private history: ChatTurn[] = [];
+
   async resolve(text: string): Promise<Reply> {
+    const reply = await this.resolveTurn(text);
+    this.history = [...this.history, {role: 'user' as const, text}, {role: 'assistant' as const, text: reply.show ?? reply.say}].slice(-6);
+    return reply;
+  }
+
+  private async resolveTurn(text: string): Promise<Reply> {
     const followUp = this.pending;
     this.pending = null;
     if (followUp) {
@@ -68,7 +81,23 @@ export class Assistant {
       if (reply) return reply;
       // La respuesta no sirvió para la pregunta: se trata como un pedido nuevo.
     }
-    return this.handle(parseIntent(text, this.now()));
+    const intent = parseIntent(text, this.now());
+    if (intent.intent === 'desconocido') return this.askLlm(text);
+    return this.handle(intent);
+  }
+
+  // Lo que las reglas no entendieron va al LLM con las skills como herramientas; sin PC o sin respuesta, "no entendí".
+  private async askLlm(text: string): Promise<Reply> {
+    const llm = await this.llm();
+    // Las luces van con sus nombres reales: así el LLM puede resolver "apaga todo menos la del living".
+    const home = await this.home();
+    const lights = home?.allLights.map(d => `${d.name} (${d.zone})`).join(', ');
+    const tools = TOOLS.map(t => (lights && t.name.startsWith('luz.') ? {...t, description: `${t.description}. Luces de la casa: ${lights}`} : t));
+    const decision = llm ? await llm.resolve(text, tools, this.history).catch(() => null) : null;
+    if (!decision) return {say: NOT_UNDERSTOOD};
+    const tool = TOOLS.find(t => t.name === decision.tool);
+    if (tool) return this.handle({intent: tool.name, slots: toSlots(tool.name, decision.args)});
+    return decision.say ? {say: decision.say} : {say: NOT_UNDERSTOOD};
   }
 
   private ask(question: string, followUp: FollowUp): Reply {
@@ -379,4 +408,18 @@ async function brightnessOf(home: Home, device: Parameters<Home['setLights']>[0]
 /** Acción hecha: en voz solo "Listo."; el detalle queda en pantalla (pedido de Gonzalo, 26 oct). */
 function done(detail: string): Reply {
   return {say: 'Listo.', show: detail};
+}
+
+/** Argumentos del LLM a Slots, con los tipos que esperan las skills (números, booleanos, texto). */
+function toSlots(intent: IntentName, args: Record<string, unknown>): Slots {
+  const slots: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(args)) {
+    if (value === null || value === undefined || value === '') continue;
+    if (key === 'percent' || key === 'seconds') { const n = Number(value); if (Number.isFinite(n)) slots[key] = n; }
+    else if (key === 'all' || key === 'inside') slots[key] = value === true || value === 'true';
+    // El LLM a veces manda una lista ("luz cocina", "luz pasillo"): las reglas de la casa entienden "x y z".
+    else slots[key] = Array.isArray(value) ? value.map(String).join(' y ') : String(value);
+  }
+  if (intent === 'fecha' && !slots.date) slots.date = isoDate(new Date());
+  return slots as Slots;
 }

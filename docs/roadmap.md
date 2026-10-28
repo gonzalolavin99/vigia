@@ -62,10 +62,11 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 
 ### Fase 5
 
-- [ ] Puente Node nativo en Windows con `claude -p` y Ollama, en `server/` (ADR-016)
-- [ ] Cliente con timeout corto y detección de servidor caído
-- [ ] Esquema de herramientas generado desde las skills
-- [ ] Modo charla con historial corto
+- [x] Puente Node nativo en Windows con `claude -p` y Ollama, en `server/` (ADR-016). `npm run bridge`; Claude haiku sin herramientas ni contexto de Claude Code: ~800 tokens por llamada (28 oct)
+- [x] Cliente con timeout corto y detección de servidor caído (`src/llm/bridge.ts`: conexión 2 s, total 30 s; con el PC apagado responde "No te entendí bien")
+- [x] Esquema de herramientas desde las skills (`src/llm/tools.ts`; las luces van con sus nombres reales)
+- [x] Modo charla con historial corto (últimos 6 turnos)
+- [ ] Prueba de punta a punta desde el teléfono (pendiente: el firewall de Windows bloquea node.exe en la red "Pública")
 
 ### Fase 6
 

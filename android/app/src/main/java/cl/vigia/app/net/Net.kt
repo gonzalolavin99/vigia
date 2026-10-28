@@ -13,7 +13,9 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
@@ -90,6 +92,14 @@ object Net {
   /** GET simple (por ejemplo, el estado de la TV); null si no responde. */
   fun httpGet(url: String, waitMs: Long, insecureLocal: Boolean): String? = try {
     client(url, insecureLocal, waitMs / 1000 + 1).newCall(Request.Builder().url(url).build()).execute().use { if (it.isSuccessful) it.body?.string() else null }
+  } catch (_: Exception) { null }
+
+  /** POST de JSON con encabezados (por ejemplo, la clave del puente LLM); devuelve código y cuerpo, o null sin conexión. */
+  fun httpPost(url: String, json: String, headers: Map<String, String>, connectMs: Long, totalMs: Long): Pair<Int, String>? = try {
+    val client = OkHttpClient.Builder().connectTimeout(connectMs, TimeUnit.MILLISECONDS).callTimeout(totalMs, TimeUnit.MILLISECONDS).build()
+    val request = Request.Builder().url(url).apply { headers.forEach { (k, v) -> header(k, v) } }
+      .post(json.toRequestBody("application/json".toMediaType())).build()
+    client.newCall(request).execute().use { it.code to (it.body?.string() ?: "") }
   } catch (_: Exception) { null }
 
   // Cliente HTTP/WebSocket. Con insecureLocal acepta el certificado propio de un equipo de la casa, solo en IP privada.

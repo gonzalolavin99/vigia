@@ -198,3 +198,41 @@ describe('clima', () => {
     await expect(assistant.resolve('¿qué temperatura hay en la pieza?')).resolves.toEqual({say: 'No tengo un sensor adentro. Afuera hay 13 grados y está nublado.'});
   });
 });
+
+describe('LLM de respaldo (fase 5)', () => {
+  function withLlm(decision: {tool: string | null; args: Record<string, unknown>; say: string} | null) {
+    const net = new FakeNet();
+    const home = new Home(CONFIG, new WizAdapter(net, '10.0.0.255'), new SamsungAdapter(net, async () => {}));
+    const asked: {text: string; tools: {name: string; description: string}[]}[] = [];
+    const llm = {resolve: async (text: string, tools: {name: string; description: string}[]) => { asked.push({text, tools}); return decision && {...decision, source: 'claude'}; }};
+    const assistant = new Assistant(new NoReminders(), () => new Date(2026, 9, 28, 20, 0), null, async () => home, async () => llm);
+    return {net, asked, assistant};
+  }
+
+  it('lo que las reglas no entienden lo resuelve el LLM con las skills ("apaga todo menos la del living")', async () => {
+    const {net, asked, assistant} = withLlm({tool: 'luz.apagar', args: {target: ['luz cocina', 'luz pasillo']}, say: 'Listo.'});
+    net.bulbs.forEach(b => (b.state = true));
+    const reply = await assistant.resolve('deja solo la del living');
+    expect(reply.say).toBe('Listo.');
+    expect(net.bulbs.get('10.0.0.34')!.state).toBe(false);
+    expect(net.bulbs.get('10.0.0.35')!.state).toBe(false);
+    expect(net.bulbs.get('10.0.0.37')!.state).toBe(true);
+    expect(asked[0].tools.find(t => t.name === 'luz.apagar')!.description).toContain('luz living (living)');
+  });
+
+  it('modo charla: responde lo que dice el LLM', async () => {
+    const {assistant} = withLlm({tool: null, args: {}, say: 'Los Simpsons los creó Matt Groening.'});
+    await expect(assistant.resolve('quién creó los Simpsons')).resolves.toEqual({say: 'Los Simpsons los creó Matt Groening.'});
+  });
+
+  it('con el PC apagado responde que no entendió', async () => {
+    const {assistant} = withLlm(null);
+    const reply = await assistant.resolve('quién creó los Simpsons');
+    expect(reply.say).toMatch(/^No te entendí bien/);
+  });
+
+  it('ignora una herramienta inventada', async () => {
+    const {assistant} = withLlm({tool: 'puerta.abrir', args: {}, say: ''});
+    expect((await assistant.resolve('abre la puerta')).say).toMatch(/^No te entendí bien/);
+  });
+});

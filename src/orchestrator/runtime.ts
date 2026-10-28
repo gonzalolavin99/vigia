@@ -6,6 +6,7 @@ import {SamsungAdapter} from '../devices/samsung';
 import {HomeConfig, Net} from '../devices/types';
 import {WizAdapter} from '../devices/wiz';
 import {recordHistory} from './history';
+import {BridgeClient, LlmClient} from '../llm/bridge';
 
 // Recordatorios guardados en Android (SQLite + AlarmManager, ADR-009).
 const nativeStore: ReminderStore = {
@@ -52,7 +53,13 @@ export function loadHome(): Promise<Home | null> {
   return homePromise;
 }
 
-export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic, loadHome);
+// El puente LLM del PC sale de la misma configuración (npm run push-config).
+async function loadLlm(): Promise<LlmClient | null> {
+  const bridge = (await loadHome())?.config.bridge;
+  return bridge ? new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost) : null;
+}
+
+export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic, loadHome, loadLlm);
 
 // Una sola instancia por proceso. Se crea al cargar el bundle (index.js), con o sin la app abierta:
 // el servicio arranca el runtime de JS aunque no haya pantalla (por ejemplo, tras reiniciar).
