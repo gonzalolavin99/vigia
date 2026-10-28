@@ -35,3 +35,6 @@ eval/**/*.log
 # Audios y transcripciones de la voz de Gonzalo: solo locales
 eval/phase0/audio/
 eval/phase0/device-logs/
+
+# Registro del puente LLM (contiene lo que se dijo)
+server/logs/

@@ -204,15 +204,15 @@ export class Assistant {
     }
     const what = describeLights(devices, home.allLights);
     let outcome;
-    let done: string;
+    let detail: string;
     if (intent === 'luz.encender' || intent === 'luz.apagar') {
       const on = intent === 'luz.encender';
       outcome = await home.setLights(devices, (a, d) => a.setPower(d, on));
-      done = `${on ? 'Prendí' : 'Apagué'} ${what}.`;
+      detail = `${on ? 'Prendí' : 'Apagué'} ${what}.`;
     } else if (intent === 'luz.tono') {
       const kelvin = {calida: 2700, neutra: 4000, fria: 6500}[slots.tone ?? 'neutra'];
       outcome = await home.setLights(devices, (a, d) => a.setWhite(d, kelvin));
-      done = `Luz ${slots.tone === 'fria' ? 'fría' : slots.tone === 'calida' ? 'cálida' : 'neutra'} en ${what}.`;
+      detail = `Luz ${slots.tone === 'fria' ? 'fría' : slots.tone === 'calida' ? 'cálida' : 'neutra'} en ${what}.`;
     } else {
       let percent = slots.percent;
       if (percent === undefined) {
@@ -222,11 +222,11 @@ export class Assistant {
       }
       const target = percent;
       outcome = await home.setLights(devices, (a, d) => a.setBrightness(d, target));
-      done = `${capitalize(what)} al ${target} %.`;
+      detail = `${capitalize(what)} al ${target} %.`;
     }
-    if (!outcome.failed.length) return {say: 'Listo.', show: done};
+    if (!outcome.failed.length) return {say: 'Listo.', show: detail};
     const failedNames = outcome.failed.map(e => e.device.name).join(', ');
-    return {say: outcome.done.length ? `${done.replace(/\.$/, '')}, pero no pude con ${failedNames}.` : `No pude comunicarme con ${failedNames}. ¿Está conectada a la red?`};
+    return {say: outcome.done.length ? `${detail.replace(/\.$/, '')}, pero no pude con ${failedNames}.` : `No pude comunicarme con ${failedNames}. ¿Está conectada a la red?`};
   }
 
   private async handleTv(intent: Intent['intent'], slots: Intent['slots']): Promise<Reply> {
