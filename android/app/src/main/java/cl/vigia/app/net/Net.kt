@@ -75,7 +75,13 @@ object Net {
     val socket = client.newWebSocket(Request.Builder().url(url).build(), object : WebSocketListener() {
       override fun onMessage(webSocket: WebSocket, text: String) {
         synchronized(received) { received += text }
-        if (!sent) { sent = true; messages.forEach { webSocket.send(it); Thread.sleep(150) } }
+        // El primer mensaje de la TV dice si aceptó la conexión; se mandan las teclas y se cierra al rato, sin
+        // esperar el plazo completo (antes cada orden tardaba 2,5 s de más).
+        if (!sent) {
+          sent = true
+          messages.forEach { webSocket.send(it); Thread.sleep(150) }
+          Thread { Thread.sleep(400); done.countDown() }.start()
+        }
       }
       override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         synchronized(received) { received += """{"event":"vigia.error","message":${org.json.JSONObject.quote(t.message ?: t.javaClass.simpleName)}}""" }

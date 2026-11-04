@@ -136,11 +136,27 @@ describe('WiZ', () => {
 });
 
 describe('TV Samsung', () => {
-  it('se empareja la primera vez y guarda el token', async () => {
+  it('se empareja con "conecta la tele" y guarda el token; después apaga', async () => {
     const {net, assistant} = setup();
+    await expect(assistant.resolve('conecta la tele')).resolves.toEqual({say: 'Listo.', show: 'Conectado con la tele.'});
+    expect(net.kv.get('samsung-token-04:E4:B6:00:00:01')).toBe('T123');
     await expect(assistant.resolve('apaga la tele')).resolves.toEqual({say: 'Listo.', show: 'Apagué la tele.'});
     expect(net.keys).toEqual(['KEY_POWER']);
-    expect(net.kv.get('samsung-token-04:E4:B6:00:00:01')).toBe('T123');
+  });
+
+  it('sin emparejar, apagar no se queda 30 s esperando el aviso (4 nov)', async () => {
+    const {net, assistant} = setup();
+    expect((await assistant.resolve('apaga la tele')).say).toMatch(/^Primero tengo que conectarme con la tele/);
+    expect(net.keys).toEqual([]);
+  });
+
+  it('apaga la tele y las luces en una sola frase (4 nov)', async () => {
+    const {net, assistant} = setup();
+    net.kv.set('samsung-token-04:E4:B6:00:00:01', 'T123');
+    net.bulbs.forEach(b => (b.state = true));
+    await expect(assistant.resolve('Apaga la televisión y las luces.')).resolves.toMatchObject({say: 'Listo.'});
+    expect(net.keys).toEqual(['KEY_POWER']);
+    expect([...net.bulbs.values()].every(b => !b.state)).toBe(true);
   });
 
   it('sin emparejar, encender responde al tiro cómo conectarse (26 oct: quedaba pensando)', async () => {
@@ -175,6 +191,7 @@ describe('TV Samsung', () => {
 
   it('sube el volumen sin hablar', async () => {
     const {net, assistant} = setup();
+    net.kv.set('samsung-token-04:E4:B6:00:00:01', 'T123');
     await expect(assistant.resolve('sube el volumen de la tele')).resolves.toEqual({say: ''});
     expect(net.keys).toEqual(['KEY_VOLUP', 'KEY_VOLUP', 'KEY_VOLUP']);
   });
@@ -182,7 +199,7 @@ describe('TV Samsung', () => {
   it('pide aceptar el aviso si la tele no da permiso', async () => {
     const {net, assistant} = setup();
     net.tvAccepts = false;
-    const reply = await assistant.resolve('apaga la tele');
+    const reply = await assistant.resolve('conecta la tele');
     expect(reply.say).toMatch(/^La tele no me dio permiso/);
   });
 });

@@ -2,6 +2,7 @@ import {DeviceError} from '../devices/types';
 import {describeLights, Home} from '../devices/home';
 import {correctArtist, SEED_ARTISTS} from '../nlu/artists';
 import {Intent, IntentName, parseIntent, Slots} from '../nlu/intents';
+import {parseCompound} from '../nlu/compound';
 import type {ChatTurn, LlmClient} from '../llm/bridge';
 import {TOOLS} from '../llm/tools';
 import {normalize} from '../nlu/normalize';
@@ -81,9 +82,20 @@ export class Assistant {
       if (reply) return reply;
       // La respuesta no sirvió para la pregunta: se trata como un pedido nuevo.
     }
+    const several = parseCompound(text, this.now());
+    if (several) return this.handleAll(several);
     const intent = parseIntent(text, this.now());
     if (intent.intent === 'desconocido') return this.askLlm(text);
     return this.handle(intent);
+  }
+
+  /** Varias órdenes seguidas: una sola respuesta, "Listo." si todas salieron bien. */
+  private async handleAll(intents: Intent[]): Promise<Reply> {
+    const replies: Reply[] = [];
+    for (const intent of intents) replies.push(await this.handle(intent));
+    const said = [...new Set(replies.map(r => r.say).filter(s => s && s !== 'Listo.'))];
+    const shown = replies.map(r => r.show ?? r.say).filter(Boolean);
+    return {say: said.length ? said.join(' ') : 'Listo.', show: shown.join(' · ')};
   }
 
   // Lo que las reglas no entendieron va al LLM con las skills como herramientas; sin PC o sin respuesta, "no entendí".

@@ -29,6 +29,8 @@ export class SamsungAdapter implements TvAdapter {
       throw new DeviceError(device, 'unreachable');
     }
     if (state !== 'on') return;
+    // Sin emparejar, la TV espera que alguien acepte el aviso: mejor avisar al tiro que quedarse 30 s esperando.
+    if (!(await this.paired(device))) throw new DeviceError(device, 'unpaired');
     await this.send(device, ['KEY_POWER']);
   }
 
@@ -44,6 +46,7 @@ export class SamsungAdapter implements TvAdapter {
 
   async key(device: DeviceConfig, key: 'KEY_VOLUP' | 'KEY_VOLDOWN' | 'KEY_MUTE', times = 1): Promise<void> {
     if ((await this.state(device)) !== 'on') throw new DeviceError(device, 'unreachable');
+    if (!(await this.paired(device))) throw new DeviceError(device, 'unpaired');
     await this.send(device, Array(times).fill(key));
   }
 
