@@ -8,7 +8,7 @@ El puente de la fase 5 (ADR-011, ADR-016) exige el PC encendido y abrir el firew
 
 ## Decisión
 
-Un `GeminiClient` en `src/llm/gemini.ts`, detrás de `LlmClient`, llama a la API de Gemini (Google AI Studio) por HTTPS desde el teléfono, con el nivel gratuito. Usa el mismo prompt y las mismas herramientas que el puente (`src/llm/prompt.ts`). La clave la pega Gonzalo en Ajustes y queda en el teléfono (SharedPreferences), fuera de git. El modelo es configurable; por defecto `gemini-3.5-flash-lite`, gratis según la página de precios del 4 nov.
+Un `GeminiClient` en `src/llm/gemini.ts`, detrás de `LlmClient`, llama a la API de Gemini (Google AI Studio) por HTTPS desde el teléfono, con el nivel gratuito. Usa el mismo prompt y las mismas herramientas que el puente (`src/llm/prompt.ts`). La clave la pega Gonzalo en Ajustes y queda en el teléfono (SharedPreferences), fuera de git. El modelo se elige en Ajustes, donde se mide la velocidad de cada uno; por defecto `gemini-3.6-flash` con el nivel mínimo de pensamiento. Si el elegido está saturado (503), se prueba el siguiente.
 
 ## Consecuencias
 
@@ -23,3 +23,7 @@ Un `GeminiClient` en `src/llm/gemini.ts`, detrás de `LlmClient`, llama a la API
 - **Puente del PC (ADR-016):** sigue en `server/`; si `home.json` trae `bridge`, se usa ese en vez de Gemini.
 - **Wikipedia sin clave:** responde "qué es X", pero no entiende órdenes ni conversa.
 - **Modelo local en el teléfono:** lento y pobre en un Realme 6 Pro.
+
+## Medición (4 nov, nivel gratis, desde el teléfono)
+
+`gemini-3.6-flash` respondió en 7,9 s. `3.5-flash-lite` tardó 10 s una vez y no alcanzó a responder en 15 s otra; `3.1-flash-lite` y `3.8-flash` rechazaron la consulta por alta demanda (503), y `2.5-flash-lite` ya no está disponible para cuentas nuevas. El nivel pagado cuesta del orden de US$0,0005 por pregunta con `3.5-flash-lite` (precios del 4 nov); queda como opción si el nivel gratis sigue lento.
