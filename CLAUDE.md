@@ -9,7 +9,7 @@ Asistente de voz local para Android (Realme 6 Pro, Android 11). Lee docs/ antes 
 - Idioma de usuario: español de Chile. Código y commits en inglés.
 - Una fase a la vez; no adelantar trabajo de fases futuras.
 - Si una decisión contradice un ADR, proponer un ADR nuevo antes de escribir código.
-- Nunca crear ni usar ANTHROPIC_API_KEY: el puente LLM usa `claude -p` con el plan Pro (ADR-011).
+- Nunca crear ni usar ANTHROPIC_API_KEY. El LLM por defecto es Gemini directo desde el teléfono, nivel gratis (ADR-021); el puente del PC con `claude -p` queda como opción (ADR-016).
 - React Native bare (sin Expo Go); el código nativo vive en android/ (ADR-002).
 - El teléfono es Android 11 (API 30): verificar cada API y permiso contra esa versión, no contra la última.
 

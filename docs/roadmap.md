@@ -66,7 +66,8 @@ Antes de la fase 0 va la preparación del PC y del teléfono, descrita paso a pa
 - [x] Cliente con timeout corto y detección de servidor caído (`src/llm/bridge.ts`: conexión 2 s, total 30 s; con el PC apagado responde "No te entendí bien")
 - [x] Esquema de herramientas desde las skills (`src/llm/tools.ts`; las luces van con sus nombres reales)
 - [x] Modo charla con historial corto (últimos 6 turnos)
-- [ ] Prueba de punta a punta desde el teléfono (pendiente: el firewall de Windows bloquea node.exe en la red "Pública")
+- [x] Sin PC: Gemini directo desde el teléfono con la clave en Ajustes (ADR-021, 4 nov); el puente del PC queda como opción
+- [ ] Prueba de punta a punta desde el teléfono con la clave de Gonzalo
 
 ### Fase 6
 

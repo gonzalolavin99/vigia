@@ -9,7 +9,7 @@ export interface LlmClient {
   resolve(text: string, tools: ToolSpec[], history: ChatTurn[]): Promise<LlmDecision | null>;
 }
 
-type Post = (url: string, json: string, headers: Record<string, string>, connectMs: number, totalMs: number) =>
+export type Post = (url: string, json: string, headers: Record<string, string>, connectMs: number, totalMs: number) =>
   Promise<{status: number; body: string} | null>;
 
 const CONNECT_MS = 2000;

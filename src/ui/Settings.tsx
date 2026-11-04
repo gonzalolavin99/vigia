@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, StyleSheet, Switch, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
 import {AudioEvent, onAudioEvent, VigiaAudio, Voice} from '../native/vigiaAudio';
+import {GeminiClient} from '../llm/gemini';
+import {GEMINI_KEY} from '../orchestrator/runtime';
 import {colors} from './theme';
 import type {useVigia} from './useVigia';
 
@@ -19,6 +21,24 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
   const [log, setLog] = useState<LogLine[]>([]);
   const [musicAccess, setMusicAccess] = useState<boolean | null>(null);
   const [speaker, setSpeaker] = useState<string | null>(null);
+  const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [keyDraft, setKeyDraft] = useState('');
+  const [aiStatus, setAiStatus] = useState<string | null>(null);
+
+  useEffect(() => { VigiaAudio.kvGet(GEMINI_KEY).then(key => setHasKey(!!key)); }, []);
+
+  // La clave se guarda solo en el teléfono y nunca se muestra de vuelta (ADR-021).
+  async function saveKey() {
+    const key = keyDraft.trim();
+    if (!key) return;
+    setAiStatus('Probando…');
+    const answer = await new GeminiClient(key, VigiaAudio.netHttpPost).resolve('Saluda en cinco palabras.', [], []);
+    if (!answer) { setAiStatus('No funcionó: revisa la clave y que haya internet.'); return; }
+    VigiaAudio.kvSet(GEMINI_KEY, key);
+    setKeyDraft('');
+    setHasKey(true);
+    setAiStatus(`Funciona ✓ «${answer.say}»`);
+  }
 
   // Se revisa cada vez que se vuelve a la pestaña (por ejemplo, después de activar el acceso en Ajustes de Android).
   useEffect(() => {
@@ -86,6 +106,18 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.cardTitle}>Inteligencia (Gemini)</Text>
+        <Text style={styles.status}>{hasKey === null ? '…' : hasKey ? 'Clave guardada ✓' : 'Sin clave: solo entiende las órdenes conocidas'}</Text>
+        <Text style={styles.note}>Lo que Alfred no entienda se lo pregunta a Gemini. Solo va el texto, nunca el audio.</Text>
+        <TextInput value={keyDraft} onChangeText={setKeyDraft} placeholder={hasKey ? 'Pegar una clave nueva' : 'Pega aquí la clave de Google AI Studio'}
+          placeholderTextColor={colors.faint} secureTextEntry autoCapitalize="none" autoCorrect={false} style={styles.input} />
+        <Pressable accessibilityRole="button" onPress={saveKey} style={styles.button}>
+          <Text style={styles.buttonText}>Guardar y probar</Text>
+        </Pressable>
+        {aiStatus ? <Text style={styles.status}>{aiStatus}</Text> : null}
+      </View>
+
+      <View style={styles.card}>
         <Text style={styles.cardTitle}>Voz</Text>
         {voices.length === 0 ? <Text style={styles.note}>Cargando voces…</Text> : voices.map(v =>
           <Pressable key={v.name} onPress={() => tryVoice(v.name)} style={[styles.voice, v.name === voice && styles.voiceOn]}>
@@ -121,6 +153,7 @@ const styles = StyleSheet.create({
   buttonText: {color: colors.bg, fontSize: 16, fontWeight: '700'},
   note: {color: colors.faint, fontSize: 13, marginTop: 8},
   status: {color: colors.text, fontSize: 15, marginTop: 4},
+  input: {backgroundColor: colors.bg, color: colors.text, borderRadius: 10, padding: 12, marginTop: 10, fontSize: 14},
   voice: {backgroundColor: colors.bg, borderRadius: 10, padding: 12, marginTop: 6},
   voiceOn: {borderWidth: 1, borderColor: colors.accent},
   voiceText: {color: colors.text, fontSize: 13},

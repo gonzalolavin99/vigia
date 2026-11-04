@@ -7,6 +7,7 @@ import {HomeConfig, Net} from '../devices/types';
 import {WizAdapter} from '../devices/wiz';
 import {recordHistory} from './history';
 import {BridgeClient, LlmClient} from '../llm/bridge';
+import {GeminiClient} from '../llm/gemini';
 
 // Recordatorios guardados en Android (SQLite + AlarmManager, ADR-009).
 const nativeStore: ReminderStore = {
@@ -53,10 +54,14 @@ export function loadHome(): Promise<Home | null> {
   return homePromise;
 }
 
-// El puente LLM del PC sale de la misma configuración (npm run push-config).
+// Lo que las reglas no entienden va a Gemini con la clave guardada en Ajustes (ADR-021). Si home.json trae el
+// puente del PC (ADR-016), se usa ese.
+export const GEMINI_KEY = 'gemini-key';
 async function loadLlm(): Promise<LlmClient | null> {
   const bridge = (await loadHome())?.config.bridge;
-  return bridge ? new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost) : null;
+  if (bridge) return new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost);
+  const key = await VigiaAudio.kvGet(GEMINI_KEY);
+  return key ? new GeminiClient(key, VigiaAudio.netHttpPost, (await VigiaAudio.kvGet('gemini-model')) ?? undefined) : null;
 }
 
 export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic, loadHome, loadLlm);

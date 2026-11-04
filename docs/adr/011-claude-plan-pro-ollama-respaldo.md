@@ -21,3 +21,7 @@ Un servidor puente en el PC (Node y TypeScript) recibe texto del teléfono por l
 ## Alternativas
 
 API key (cobra por uso aunque sean centavos); solo Ollama (gratis, calidad limitada por el PC).
+
+## Actualización (4 nov)
+
+Ya no es el camino por defecto: el teléfono usa Gemini directo, sin PC (ADR-021). El puente queda en `server/` y se usa solo si `home.json` trae `bridge`.

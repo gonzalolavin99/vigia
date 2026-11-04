@@ -17,3 +17,7 @@ Una instalación menos y la misma sesión que se usa para desarrollar. El modelo
 ## Alternativas
 
 Docker como decía el roadmap (inicio de sesión aparte dentro del contenedor).
+
+## Actualización (4 nov)
+
+Ya no es el camino por defecto: el teléfono usa Gemini directo, sin PC (ADR-021). El puente queda en `server/` y se usa solo si `home.json` trae `bridge`.
