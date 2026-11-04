@@ -2,7 +2,7 @@ import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import type {Reminder} from '../orchestrator/assistant';
 import type {Turn} from '../orchestrator/history';
-import {horaFrase} from '../skills/say';
+import {horaCorta} from '../skills/say';
 import Orb from './Orb';
 import {colors, orbLabels} from './theme';
 import type {useVigia} from './useVigia';
@@ -93,7 +93,7 @@ function ReminderRow({reminder, onDelete}: {reminder: Reminder; onDelete: () => 
 function HistoryRow({turn}: {turn: Turn}) {
   return (
     <View style={styles.historyRow}>
-      <Text style={styles.historyTime}>{horaFrase(new Date(turn.at)).replace(/^las? /, '')}</Text>
+      <Text style={styles.historyTime}>{horaCorta(new Date(turn.at))}</Text>
       {turn.heard ? <Text style={styles.heard}>Tú: «{turn.heard}»</Text> : null}
       {turn.reply ? <Text style={styles.reply}>Vigía: {turn.reply}</Text> : null}
     </View>

@@ -6,7 +6,7 @@ import type {ChatTurn, LlmClient} from '../llm/bridge';
 import {TOOLS} from '../llm/tools';
 import {normalize} from '../nlu/normalize';
 import {addDays, defaultDate, isoDate, parseWhen} from '../nlu/when';
-import {cuandoFrase, decirHora, duracionFrase, fechaFrase, horaFrase, toDate} from '../skills/say';
+import {cuandoFrase, decirHora, horaCorta, duracionFrase, fechaFrase, horaFrase, toDate} from '../skills/say';
 import type {Reply} from './machine';
 
 // Skills de la fase 2 (hora, fecha, temporizador, recordatorios) y el diálogo cuando falta un dato:
@@ -109,7 +109,7 @@ export class Assistant {
     const now = this.now();
     switch (intent) {
       case 'hora':
-        return {say: decirHora(now)};
+        return {say: decirHora(now), show: horaCorta(now)};
 
       case 'fecha': {
         const date = toDate(slots.date!);

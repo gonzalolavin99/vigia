@@ -57,9 +57,10 @@ export function loadHome(): Promise<Home | null> {
 // Lo que las reglas no entienden va a Gemini con la clave guardada en Ajustes (ADR-021). Sin clave, al puente del
 // PC si home.json lo trae (ADR-016).
 export const GEMINI_KEY = 'gemini-key';
+export const GEMINI_MODEL = 'gemini-model';
 async function loadLlm(): Promise<LlmClient | null> {
   const key = await VigiaAudio.kvGet(GEMINI_KEY);
-  if (key) return new GeminiClient(key, VigiaAudio.netHttpPost, (await VigiaAudio.kvGet('gemini-model')) ?? undefined, VigiaAudio.log);
+  if (key) return new GeminiClient(key, VigiaAudio.netHttpPost, (await VigiaAudio.kvGet(GEMINI_MODEL)) ?? undefined, VigiaAudio.log);
   const bridge = (await loadHome())?.config.bridge;
   return bridge ? new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost) : null;
 }

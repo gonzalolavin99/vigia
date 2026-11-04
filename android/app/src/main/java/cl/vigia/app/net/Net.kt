@@ -96,11 +96,13 @@ object Net {
 
   /** POST de JSON con encabezados (por ejemplo, la clave del puente LLM); devuelve código y cuerpo, o null sin conexión. */
   fun httpPost(url: String, json: String, headers: Map<String, String>, connectMs: Long, totalMs: Long): Pair<Int, String>? = try {
-    val client = OkHttpClient.Builder().connectTimeout(connectMs, TimeUnit.MILLISECONDS).callTimeout(totalMs, TimeUnit.MILLISECONDS).build()
+    // Sin readTimeout explícito OkHttp corta a los 10 s aunque callTimeout sea mayor.
+    val client = OkHttpClient.Builder().connectTimeout(connectMs, TimeUnit.MILLISECONDS).readTimeout(totalMs, TimeUnit.MILLISECONDS)
+      .writeTimeout(totalMs, TimeUnit.MILLISECONDS).callTimeout(totalMs, TimeUnit.MILLISECONDS).build()
     val request = Request.Builder().url(url).apply { headers.forEach { (k, v) -> header(k, v) } }
       .post(json.toRequestBody("application/json".toMediaType())).build()
     client.newCall(request).execute().use { it.code to (it.body?.string() ?: "") }
-  } catch (_: Exception) { null }
+  } catch (e: Exception) { android.util.Log.w("VigiaMetrics", "http_post_failed host=${url.substringAfter("://").substringBefore('/')} error=${e.javaClass.simpleName}: ${e.message}"); null }
 
   // Cliente HTTP/WebSocket. Con insecureLocal acepta el certificado propio de un equipo de la casa, solo en IP privada.
   private fun client(url: String, insecureLocal: Boolean, timeoutSeconds: Long): OkHttpClient {

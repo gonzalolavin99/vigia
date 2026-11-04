@@ -21,7 +21,7 @@ function setup(reminders: Omit<Reminder, 'id'>[] = []) {
 describe('hora y fecha', () => {
   it('dice la hora', async () => {
     const {assistant} = setup();
-    await expect(assistant.resolve('¿Qué hora es?')).resolves.toEqual({say: 'Son las 6 en punto de la tarde.'});
+    await expect(assistant.resolve('¿Qué hora es?')).resolves.toEqual({say: 'Son las 6 en punto de la tarde.', show: '6:00 PM'});
   });
 
   it.each([
@@ -87,7 +87,7 @@ describe('recordatorios', () => {
   it('una respuesta que no es hora se trata como pedido nuevo', async () => {
     const {assistant} = setup();
     await assistant.resolve('recuérdame mañana de llamar a Felipe');
-    await expect(assistant.resolve('¿qué hora es?')).resolves.toEqual({say: 'Son las 6 en punto de la tarde.'});
+    await expect(assistant.resolve('¿qué hora es?')).resolves.toEqual({say: 'Son las 6 en punto de la tarde.', show: '6:00 PM'});
   });
 
   it('crea una alarma con "despiértame"', async () => {

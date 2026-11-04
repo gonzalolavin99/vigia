@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {Pressable, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
 import {AudioEvent, onAudioEvent, VigiaAudio, Voice} from '../native/vigiaAudio';
-import {GeminiClient} from '../llm/gemini';
-import {GEMINI_KEY} from '../orchestrator/runtime';
+import {DEFAULT_GEMINI_MODEL, GEMINI_MODELS, GeminiClient} from '../llm/gemini';
+import {TOOLS} from '../llm/tools';
+import {GEMINI_KEY, GEMINI_MODEL} from '../orchestrator/runtime';
 import {colors} from './theme';
 import type {useVigia} from './useVigia';
 
@@ -25,7 +26,31 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
   const [keyDraft, setKeyDraft] = useState('');
   const [aiStatus, setAiStatus] = useState<string | null>(null);
 
-  useEffect(() => { VigiaAudio.kvGet(GEMINI_KEY).then(key => setHasKey(!!key)); }, []);
+  const [model, setModel] = useState(DEFAULT_GEMINI_MODEL);
+  const [speeds, setSpeeds] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    VigiaAudio.kvGet(GEMINI_KEY).then(key => setHasKey(!!key));
+    VigiaAudio.kvGet(GEMINI_MODEL).then(saved => saved && setModel(saved));
+  }, []);
+
+  // Mide cada modelo con una pregunta real y todas las herramientas, como cuando habla Alfred.
+  async function measure() {
+    const key = await VigiaAudio.kvGet(GEMINI_KEY);
+    if (!key) return;
+    for (const name of GEMINI_MODELS) {
+      setSpeeds(prev => ({...prev, [name]: 'midiendo…'}));
+      const started = Date.now();
+      const answer = await new GeminiClient(key, VigiaAudio.netHttpPost, name, VigiaAudio.log).resolve('quién creó los Simpsons', TOOLS, []);
+      const seconds = ((Date.now() - started) / 1000).toFixed(1).replace('.', ',');
+      setSpeeds(prev => ({...prev, [name]: answer ? `${seconds} s` : 'no disponible'}));
+    }
+  }
+
+  function chooseModel(name: string) {
+    VigiaAudio.kvSet(GEMINI_MODEL, name);
+    setModel(name);
+  }
 
   // La clave se guarda solo en el teléfono y nunca se muestra de vuelta (ADR-021).
   async function saveKey() {
@@ -115,6 +140,18 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
           <Text style={styles.buttonText}>Guardar y probar</Text>
         </Pressable>
         {aiStatus ? <Text style={styles.status}>{aiStatus}</Text> : null}
+        {hasKey ? (
+          <>
+            <Pressable accessibilityRole="button" onPress={measure} style={styles.button}>
+              <Text style={styles.buttonText}>Medir velocidad de los modelos</Text>
+            </Pressable>
+            {GEMINI_MODELS.map(name =>
+              <Pressable key={name} onPress={() => chooseModel(name)} style={[styles.voice, name === model && styles.voiceOn]}>
+                <Text style={styles.voiceText}>{name === model ? '● ' : ''}{name}{speeds[name] ? `  ·  ${speeds[name]}` : ''}</Text>
+              </Pressable>)}
+            <Text style={styles.note}>Toca un modelo para que Alfred lo use.</Text>
+          </>
+        ) : null}
       </View>
 
       <View style={styles.card}>

@@ -6,6 +6,8 @@ import type {ToolSpec} from './tools';
 // que las reglas no entendieron y la conversación corta. Sin internet, sin clave o con el límite gratis agotado
 // (429) devuelve null y Vigía responde con las reglas.
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+/** Modelos gratis que se comparan en Ajustes (página de precios de Google, 4 nov). */
+export const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.8-flash'];
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const CONNECT_MS = 3000;
 const TOTAL_MS = 15_000;

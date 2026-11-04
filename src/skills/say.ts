@@ -20,6 +20,12 @@ export function horaFrase(date: Date, conVerbo = false): string {
   return conVerbo ? `${h12 === 1 ? 'Es' : 'Son'} ${frase}` : frase;
 }
 
+/** Para la pantalla: "11:25 AM". */
+export function horaCorta(date: Date): string {
+  const h = date.getHours();
+  return `${h % 12 === 0 ? 12 : h % 12}:${String(date.getMinutes()).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
 function periodo(h: number): string {
   if (h < 6) return 'de la madrugada';
   if (h < 12) return 'de la mañana';
