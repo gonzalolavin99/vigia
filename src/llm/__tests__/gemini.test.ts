@@ -11,7 +11,7 @@ describe('GeminiClient', () => {
       return reply('{"tool":"hora","args":{},"say":"Listo."}');
     });
     await expect(client.resolve('qué hora es', TOOLS, [])).resolves.toEqual({tool: 'hora', args: {}, say: 'Listo.', source: 'gemini'});
-    expect(calls[0].url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent');
+    expect(calls[0].url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent');
     expect(calls[0].url).not.toContain('clave');
     expect(calls[0].headers['x-goog-api-key']).toBe('clave');
     expect(JSON.parse(calls[0].json).contents[0].parts[0].text).toContain('Usuario: qué hora es');
@@ -29,5 +29,26 @@ describe('GeminiClient', () => {
       await expect(new GeminiClient('k', async () => response).resolve('hola', TOOLS, [])).resolves.toBeNull();
     }
     await expect(new GeminiClient('k', async () => { throw new Error('red'); }).resolve('hola', TOOLS, [])).resolves.toBeNull();
+  });
+
+  it('si un modelo está saturado prueba el siguiente', async () => {
+    const urls: string[] = [];
+    const client = new GeminiClient('k', async url => {
+      urls.push(url);
+      return urls.length === 1 ? {status: 503, body: '{"error":{"message":"high demand"}}'} : reply('{"tool":"hora","args":{},"say":"Listo."}');
+    });
+    await expect(client.resolve('qué hora es', TOOLS, [])).resolves.toMatchObject({tool: 'hora'});
+    expect(urls.map(u => u.split('/models/')[1])).toEqual(['gemini-3.6-flash:generateContent', 'gemini-3.5-flash-lite:generateContent']);
+  });
+
+  it('si el modelo no acepta el nivel de pensamiento, repite sin él', async () => {
+    const bodies: string[] = [];
+    const client = new GeminiClient('k', async (_url, json) => {
+      bodies.push(json);
+      return bodies.length === 1 ? {status: 400, body: '{"error":{"message":"thinking level not supported"}}'} : reply('{"tool":null,"args":{},"say":"Hola."}');
+    }, 'gemini-3.6-flash', () => {}, []);
+    await expect(client.resolve('hola', TOOLS, [])).resolves.toMatchObject({say: 'Hola.'});
+    expect(JSON.parse(bodies[0]).generationConfig.thinkingConfig).toEqual({thinkingLevel: 'minimal'});
+    expect(JSON.parse(bodies[1]).generationConfig.thinkingConfig).toBeUndefined();
   });
 });

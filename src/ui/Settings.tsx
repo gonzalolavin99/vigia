@@ -41,7 +41,7 @@ export default function Settings({vigia}: {vigia: ReturnType<typeof useVigia>}):
     for (const name of GEMINI_MODELS) {
       setSpeeds(prev => ({...prev, [name]: 'midiendo…'}));
       const started = Date.now();
-      const answer = await new GeminiClient(key, VigiaAudio.netHttpPost, name, VigiaAudio.log).resolve('quién creó los Simpsons', TOOLS, []);
+      const answer = await new GeminiClient(key, VigiaAudio.netHttpPost, name, VigiaAudio.log, []).resolve('quién creó los Simpsons', TOOLS, []);
       const seconds = ((Date.now() - started) / 1000).toFixed(1).replace('.', ',');
       setSpeeds(prev => ({...prev, [name]: answer ? `${seconds} s` : 'no disponible'}));
     }
