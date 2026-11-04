@@ -26,4 +26,4 @@ Un `GeminiClient` en `src/llm/gemini.ts`, detrás de `LlmClient`, llama a la API
 
 ## Medición (4 nov, nivel gratis, desde el teléfono)
 
-`gemini-3.6-flash` respondió en 7,9 s. `3.5-flash-lite` tardó 10 s una vez y no alcanzó a responder en 15 s otra; `3.1-flash-lite` y `3.8-flash` rechazaron la consulta por alta demanda (503), y `2.5-flash-lite` ya no está disponible para cuentas nuevas. El nivel pagado cuesta del orden de US$0,0005 por pregunta con `3.5-flash-lite` (precios del 4 nov); queda como opción si el nivel gratis sigue lento.
+`gemini-3.6-flash` respondió en 7,9 s con su pensamiento por defecto (medio) y en 2,4 s con el mínimo. `3.5-flash-lite` tardó 10 s una vez y no alcanzó a responder en 15 s otra; `3.1-flash-lite` y `3.8-flash` rechazaron la consulta por alta demanda (503), y `2.5-flash-lite` ya no está disponible para cuentas nuevas. El nivel pagado cuesta del orden de US$0,0005 por pregunta con `3.5-flash-lite` (precios del 4 nov); queda como opción si el nivel gratis sigue lento.
