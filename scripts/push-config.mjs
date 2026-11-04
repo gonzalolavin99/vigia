@@ -12,8 +12,8 @@ if (!Array.isArray(local.devices) || typeof local.latitude !== 'number') {
   process.exit(1);
 }
 const home = { latitude: local.latitude, longitude: local.longitude, place: local.place, devices: local.devices };
-// Puente LLM del PC (fase 5): la IP del PC en la red de la casa y la clave que genera `npm run bridge`.
-if (local.bridgeToken) {
+// Puente LLM del PC (ADR-016), solo si se pide con "useBridge": true; por defecto el teléfono usa Gemini (ADR-021).
+if (local.useBridge && local.bridgeToken) {
   home.bridge = { url: `http://${local.bridgeHost ?? lanAddress()}:${local.bridgePort ?? 8787}`, token: local.bridgeToken };
 }
 const file = join(mkdtempSync(join(tmpdir(), 'vigia-')), 'home.json');
@@ -25,7 +25,7 @@ const r = spawnSync(adb, ['push', file, '/sdcard/Android/data/cl.vigia.app/files
 process.stdout.write(r.stdout ?? '');
 process.stderr.write(r.stderr ?? '');
 if (r.status === 0) {
-  console.log(`Configuración copiada: ${home.devices.length} dispositivos en ${home.place ?? 'la casa'}, ${home.bridge ? `puente en ${home.bridge.url}` : 'sin puente LLM (corre npm run bridge una vez)'}.`);
+  console.log(`Configuración copiada: ${home.devices.length} dispositivos en ${home.place ?? 'la casa'}, ${home.bridge ? `puente en ${home.bridge.url}` : 'sin puente del PC'}.`);
 }
 process.exitCode = r.status ?? 1;
 

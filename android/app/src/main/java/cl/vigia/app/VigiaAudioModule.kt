@@ -136,6 +136,9 @@ class VigiaAudioModule(private val context: ReactApplicationContext) : ReactCont
   @ReactMethod fun kvGet(key: String, promise: Promise) { promise.resolve(context.getSharedPreferences("vigia-kv", 0).getString(key, null)) }
   @ReactMethod fun kvSet(key: String, value: String) { context.getSharedPreferences("vigia-kv", 0).edit().putString(key, value).apply() }
 
+  // Una línea del orquestador de JS en el registro persistente (npm run logs). Nunca lleva claves.
+  @ReactMethod fun log(event: String) { MetricsLog.log(context, event) }
+
   @ReactMethod fun listenAgain() { VoiceService.requestCommand() }
   @ReactMethod fun endTurn() { Turn.end(context) }
 

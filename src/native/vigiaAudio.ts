@@ -35,6 +35,7 @@ type VigiaAudioModule = {
   readConfig(): Promise<string | null>;
   kvGet(key: string): Promise<string | null>;
   kvSet(key: string, value: string): void;
+  log(event: string): void;
   ringStatus(): Promise<{ringing: boolean; message: string | null}>;
   remindersAdd(text: string, at: number, kind: string): Promise<{id: number; text: string; at: number; kind: string}>;
   remindersList(): Promise<{id: number; text: string; at: number; kind: string}[]>;

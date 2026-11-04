@@ -54,14 +54,14 @@ export function loadHome(): Promise<Home | null> {
   return homePromise;
 }
 
-// Lo que las reglas no entienden va a Gemini con la clave guardada en Ajustes (ADR-021). Si home.json trae el
-// puente del PC (ADR-016), se usa ese.
+// Lo que las reglas no entienden va a Gemini con la clave guardada en Ajustes (ADR-021). Sin clave, al puente del
+// PC si home.json lo trae (ADR-016).
 export const GEMINI_KEY = 'gemini-key';
 async function loadLlm(): Promise<LlmClient | null> {
-  const bridge = (await loadHome())?.config.bridge;
-  if (bridge) return new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost);
   const key = await VigiaAudio.kvGet(GEMINI_KEY);
-  return key ? new GeminiClient(key, VigiaAudio.netHttpPost, (await VigiaAudio.kvGet('gemini-model')) ?? undefined) : null;
+  if (key) return new GeminiClient(key, VigiaAudio.netHttpPost, (await VigiaAudio.kvGet('gemini-model')) ?? undefined, VigiaAudio.log);
+  const bridge = (await loadHome())?.config.bridge;
+  return bridge ? new BridgeClient(bridge.url, bridge.token, VigiaAudio.netHttpPost) : null;
 }
 
 export const assistant = new Assistant(nativeStore, () => new Date(), nativeMusic, loadHome, loadLlm);
